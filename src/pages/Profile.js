@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserArticles } from "../userapi";
+import { getUserArticles } from "../api/userapi";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
@@ -50,10 +50,12 @@ const Profile = () => {
     );
   }
 
-  // Pagination calculations
   const totalPages = Math.ceil(articles.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedArticles = articles.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedArticles = articles.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -123,7 +125,9 @@ const Profile = () => {
       </div>
 
       <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-6">Articles by {user.firstName}</h2>
+        <h2 className="text-2xl font-bold mb-6">
+          Articles by {user.firstName}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {paginatedArticles.map((article) => (
             <div
@@ -137,7 +141,8 @@ const Profile = () => {
                   className="w-full h-48 object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "https://via.placeholder.com/150?text=No+Image";
+                    e.target.src =
+                      "https://via.placeholder.com/150?text=No+Image";
                   }}
                 />
               ) : (

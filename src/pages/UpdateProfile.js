@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile } from "../userapi";
+import { updateProfile } from "../api/userapi";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from 'react-redux';
-import { updateUser as updateUserAction } from '../store/slice/userSlice';
-import { handleImageValidation } from '../utils/imageValidation';
+import { useDispatch } from "react-redux";
+import { updateUser as updateUserAction } from "../store/slice/userSlice";
+import { handleImageValidation } from "../utils/imageValidation";
 
 const CATEGORIES = [
-  "sports", "politics", "space", "technology", "entertainment",
-  "health", "science", "business", "education", "travel",
-  "food", "fashion", "art", "music", "gaming", "environment",
+  "sports",
+  "politics",
+  "space",
+  "technology",
+  "entertainment",
+  "health",
+  "science",
+  "business",
+  "education",
+  "travel",
+  "food",
+  "fashion",
+  "art",
+  "music",
+  "gaming",
+  "environment",
 ];
 
 const UpdateProfile = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -27,7 +40,7 @@ const UpdateProfile = () => {
     confirmNewPassword: "",
     preferences: user?.preferences || [],
     image: null,
-    removeImage: false
+    removeImage: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -37,76 +50,83 @@ const UpdateProfile = () => {
   );
 
   const validateField = (name, value, allValues = formData) => {
-    if (!value && name !== 'newPassword' && name !== 'currentPassword') {
-      return '';
+    if (!value && name !== "newPassword" && name !== "currentPassword") {
+      return "";
     }
 
     switch (name) {
-      case 'email':
+      case "email":
         if (value && !/^[a-zA-Z0-9._-]+@[a-z]+\.[a-z]{2,}$/.test(value)) {
-          return 'Please enter a valid email address';
+          return "Please enter a valid email address";
         }
         break;
 
-      case 'phone':
-        if (value && !/^\d{10}$/.test(value.replace(/[-()\s]/g, ''))) {
-          return 'Please enter a valid 10-digit phone number';
+      case "phone":
+        if (value && !/^\d{10}$/.test(value.replace(/[-()\s]/g, ""))) {
+          return "Please enter a valid 10-digit phone number";
         }
         break;
 
-      case 'newPassword':
+      case "newPassword":
         if (allValues.currentPassword || value) {
           if (!value) {
-            return 'New password is required when current password is provided';
+            return "New password is required when current password is provided";
           }
           if (value && value.length < 8) {
-            return 'Must be at least 8 characters';
+            return "Must be at least 8 characters";
           }
-          if (value && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
-            return 'Password must include uppercase, lowercase, number and special character';
+          if (
+            value &&
+            !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+              value
+            )
+          ) {
+            return "Password must include uppercase, lowercase, number and special character";
           }
         }
         break;
 
-      case 'currentPassword':
+      case "currentPassword":
         if (allValues.newPassword || value) {
           if (!value) {
-            return 'Current password is required to change password';
+            return "Current password is required to change password";
           }
         }
         break;
 
-      case 'confirmNewPassword':
+      case "confirmNewPassword":
         if (allValues.newPassword && value !== allValues.newPassword) {
-          return 'Passwords must match';
+          return "Passwords must match";
         }
         break;
 
-      case 'image':
+      case "image":
         if (value && value.size > 5 * 1024 * 1024) {
-          return 'Image must be less than 5MB';
+          return "Image must be less than 5MB";
         }
         break;
+      default: {
+        return "";
+      }
     }
-    return '';
   };
 
   const validateForm = (data) => {
     const newErrors = {};
-    const changedFields = Object.keys(data).filter(key => {
-      if (key === 'image') {
+    const changedFields = Object.keys(data).filter((key) => {
+      if (key === "image") {
         return data[key] !== null;
       }
-      if (key === 'preferences') {
+      if (key === "preferences") {
         return true;
       }
-      if (key === 'removeImage') {
+      if (key === "removeImage") {
         return data[key] === true;
       }
-      return data[key] !== user[key] && data[key] !== '';
+      return data[key] !== user[key] && data[key] !== "";
     });
 
-    changedFields.forEach(key => {
+    changedFields.forEach((key) => {
       const error = validateField(key, data[key], data);
       if (error) {
         newErrors[key] = error;
@@ -114,12 +134,14 @@ const UpdateProfile = () => {
     });
 
     if (data.currentPassword || data.newPassword || data.confirmNewPassword) {
-      ['currentPassword', 'newPassword', 'confirmNewPassword'].forEach(field => {
-        const error = validateField(field, data[field], data);
-        if (error) {
-          newErrors[field] = error;
+      ["currentPassword", "newPassword", "confirmNewPassword"].forEach(
+        (field) => {
+          const error = validateField(field, data[field], data);
+          if (error) {
+            newErrors[field] = error;
+          }
         }
-      });
+      );
     }
 
     return newErrors;
@@ -127,11 +149,11 @@ const UpdateProfile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     const error = validateField(name, value, formData);
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [name]: error
+      [name]: error,
     }));
   };
 
@@ -140,14 +162,16 @@ const UpdateProfile = () => {
     if (file) {
       const isValid = await handleImageValidation(
         file,
-        (error) => setErrors(prev => ({ ...prev, image: error })),
-        (image) => setFormData(prev => ({ ...prev, image })),
+        (error) => setErrors((prev) => ({ ...prev, image: error })),
+        (image) => setFormData((prev) => ({ ...prev, image })),
         setImagePreview,
-        setMessage ? (msg) => setMessage({ type: 'error', text: msg.message }) : null
+        setMessage
+          ? (msg) => setMessage({ type: "error", text: msg.message })
+          : null
       );
 
       if (!isValid) {
-        setFormData(prev => ({ ...prev, image: null }));
+        setFormData((prev) => ({ ...prev, image: null }));
         setImagePreview(null);
       }
     }
@@ -155,25 +179,25 @@ const UpdateProfile = () => {
 
   const handleImageRemove = () => {
     setImagePreview(null);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       image: null,
-      removeImage: true
+      removeImage: true,
     }));
   };
 
   const handlePreferenceChange = (category) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       preferences: prev.preferences.includes(category)
-        ? prev.preferences.filter(pref => pref !== category)
-        : [...prev.preferences, category]
+        ? prev.preferences.filter((pref) => pref !== category)
+        : [...prev.preferences, category],
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const formErrors = validateForm(formData);
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -182,17 +206,17 @@ const UpdateProfile = () => {
 
     try {
       const formDataToSend = new FormData();
-      
-      Object.keys(formData).forEach(key => {
-        if (key === 'image' && formData[key]) {
-          formDataToSend.append('image', formData[key]);
-        } else if (key === 'preferences') {
-          formDataToSend.append('preferences', JSON.stringify(formData[key]));
-        } else if (key === 'removeImage' && formData[key]) {
-          formDataToSend.append('removeImage', 'true');
+
+      Object.keys(formData).forEach((key) => {
+        if (key === "image" && formData[key]) {
+          formDataToSend.append("image", formData[key]);
+        } else if (key === "preferences") {
+          formDataToSend.append("preferences", JSON.stringify(formData[key]));
+        } else if (key === "removeImage" && formData[key]) {
+          formDataToSend.append("removeImage", "true");
         } else if (
-          key !== 'confirmNewPassword' && 
-          formData[key] !== '' && 
+          key !== "confirmNewPassword" &&
+          formData[key] !== "" &&
           formData[key] !== user[key]
         ) {
           formDataToSend.append(key, formData[key]);
@@ -200,25 +224,28 @@ const UpdateProfile = () => {
       });
 
       const response = await updateProfile(formDataToSend);
-      
+
       if (response.success) {
         dispatch(updateUserAction(response.data.user));
-        setMessage({ 
-          type: "success", 
-          text: "Profile updated successfully! Redirecting to profile..." 
+        setMessage({
+          type: "success",
+          text: "Profile updated successfully! Redirecting to profile...",
         });
-        
+
         setTimeout(() => {
-          navigate('/profile');
+          navigate("/profile");
         }, 2000);
       } else {
-        throw new Error(response.message || 'Update failed');
+        throw new Error(response.message || "Update failed");
       }
     } catch (error) {
-      console.error('Profile update error:', error);
+      console.error("Profile update error:", error);
       setMessage({
         type: "error",
-        text: error.response?.data?.message || error.message || "Failed to update profile"
+        text:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update profile",
       });
     }
   };
@@ -277,7 +304,7 @@ const UpdateProfile = () => {
             />
             <button
               type="button"
-              onClick={() => document.getElementById('image').click()}
+              onClick={() => document.getElementById("image").click()}
               className="btn-primary"
             >
               Upload Image
@@ -300,7 +327,9 @@ const UpdateProfile = () => {
               className="input-field"
             />
             {errors.firstName && (
-              <div className="text-red-500 text-sm mt-1">{errors.firstName}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {errors.firstName}
+              </div>
             )}
           </div>
 
@@ -375,7 +404,9 @@ const UpdateProfile = () => {
                 className="input-field"
               />
               {errors.currentPassword && (
-                <div className="text-red-500 text-sm mt-1">{errors.currentPassword}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {errors.currentPassword}
+                </div>
               )}
             </div>
 
@@ -392,7 +423,9 @@ const UpdateProfile = () => {
                 className="input-field"
               />
               {errors.newPassword && (
-                <div className="text-red-500 text-sm mt-1">{errors.newPassword}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {errors.newPassword}
+                </div>
               )}
             </div>
 
@@ -409,7 +442,9 @@ const UpdateProfile = () => {
                 className="input-field"
               />
               {errors.confirmNewPassword && (
-                <div className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {errors.confirmNewPassword}
+                </div>
               )}
             </div>
           </div>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getArticleById, blockArticle } from '../userapi';
-import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from '../components/LoadingSpinner';
-import Modal from '../components/Modal';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getArticleById, blockArticle } from "../api/userapi";
+import { useAuth } from "../context/AuthContext";
+import LoadingSpinner from "../components/LoadingSpinner";
+import Modal from "../components/Modal";
 
 const ArticleDetail = () => {
   const { id } = useParams();
@@ -13,24 +13,23 @@ const ArticleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [blockModal, setBlockModal] = useState({
     isOpen: false,
-    action: null 
+    action: null,
   });
 
   const fetchArticle = useCallback(async () => {
     try {
       const data = await getArticleById(id);
-      
-  
+
       if (user && data.blocks.includes(user._id)) {
-        navigate('/');
+        navigate("/");
         return;
       }
-      
+
       setArticle(data);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      navigate('/');
+      navigate("/");
     }
   }, [id, navigate, user]);
 
@@ -39,10 +38,10 @@ const ArticleDetail = () => {
   }, [fetchArticle]);
 
   const handleBlockClick = () => {
-    const action = article.blocks.includes(user?._id) ? 'unblock' : 'block';
+    const action = article.blocks.includes(user?._id) ? "unblock" : "block";
     setBlockModal({
       isOpen: true,
-      action
+      action,
     });
   };
 
@@ -51,13 +50,12 @@ const ArticleDetail = () => {
       const updatedArticle = await blockArticle(id);
       setArticle(updatedArticle);
       setBlockModal({ isOpen: false, action: null });
-      
-     
-      if (blockModal.action === 'block') {
-        navigate('/dashboard');
+
+      if (blockModal.action === "block") {
+        navigate("/dashboard");
       }
     } catch (error) {
-      // Handle error in UI if needed
+      console.err(error);
     }
   };
 
@@ -99,7 +97,7 @@ const ArticleDetail = () => {
           <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
             {article.title}
           </h1>
-          
+
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <span className="text-gray-600 dark:text-gray-400">
@@ -128,11 +126,11 @@ const ArticleDetail = () => {
             onClick={handleBlockClick}
             className={`px-4 py-2 rounded-md ${
               isBlocked
-                ? 'bg-gray-600 text-white hover:bg-gray-700'
-                : 'border border-red-600 text-red-600 hover:bg-red-50'
+                ? "bg-gray-600 text-white hover:bg-gray-700"
+                : "border border-red-600 text-red-600 hover:bg-red-50"
             }`}
           >
-            {isBlocked ? 'Unblock Article' : 'Block Article'}
+            {isBlocked ? "Unblock Article" : "Block Article"}
           </button>
         </div>
       )}
@@ -157,15 +155,17 @@ const ArticleDetail = () => {
         isOpen={blockModal.isOpen}
         onClose={handleBlockCancel}
         onConfirm={handleBlockConfirm}
-        title={blockModal.action === 'block' ? 'Block Article' : 'Unblock Article'}
+        title={
+          blockModal.action === "block" ? "Block Article" : "Unblock Article"
+        }
         message={
-          blockModal.action === 'block'
-            ? 'Are you sure you want to block this article? You won\'t see it in your feed anymore.'
-            : 'Are you sure you want to unblock this article? It will appear in your feed again.'
+          blockModal.action === "block"
+            ? "Are you sure you want to block this article? You won't see it in your feed anymore."
+            : "Are you sure you want to unblock this article? It will appear in your feed again."
         }
       />
     </div>
   );
 };
 
-export default ArticleDetail; 
+export default ArticleDetail;

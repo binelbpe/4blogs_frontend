@@ -90,21 +90,21 @@ export const updateProfile = async (userData) => {
 export const createArticle = async (articleData) => {
   try {
     console.log("Creating article with data:", {
-      title: articleData.get('title'),
-      description: articleData.get('description'),
-      category: articleData.get('category'),
-      hasImage: articleData.get('image') ? 'Yes' : 'No',
-      tags: articleData.get('tags'),
+      title: articleData.get("title"),
+      description: articleData.get("description"),
+      category: articleData.get("category"),
+      hasImage: articleData.get("image") ? "Yes" : "No",
+      tags: articleData.get("tags"),
     });
 
     const response = await api.post("/articles", articleData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
 
     if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to create article');
+      throw new Error(response.data.message || "Failed to create article");
     }
 
     return response.data;

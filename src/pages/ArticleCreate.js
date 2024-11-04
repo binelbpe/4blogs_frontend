@@ -1,55 +1,60 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
-import { createArticle } from '../userapi';
-import { handleImageValidation } from '../utils/imageValidation';
-import Toast from '../components/Toast';
-import imageCompression from 'browser-image-compression';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
+import { createArticle } from "../api/userapi";
+import Toast from "../components/Toast";
 
 const CATEGORIES = [
-  'sports', 'politics', 'space', 'technology', 'entertainment',
-  'health', 'science', 'business', 'education', 'travel',
-  'food', 'fashion', 'art', 'music', 'gaming', 'environment'
+  "sports",
+  "politics",
+  "space",
+  "technology",
+  "entertainment",
+  "health",
+  "science",
+  "business",
+  "education",
+  "travel",
+  "food",
+  "fashion",
+  "art",
+  "music",
+  "gaming",
+  "environment",
 ];
-
-const compressionOptions = {
-  maxSizeMB: 1,
-  maxWidthOrHeight: 1024,
-  useWebWorker: true
-};
 
 const ArticleCreate = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
+    title: "",
+    description: "",
+    category: "",
     image: null,
-    tags: ''
+    tags: "",
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
   const [toast, setToast] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = "Title is required";
     }
-    
+
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = "Description is required";
     }
-    
+
     if (!formData.category) {
-      newErrors.category = 'Category is required';
+      newErrors.category = "Category is required";
     }
-    
+
     if (!formData.image) {
-      newErrors.image = 'Image is required';
+      newErrors.image = "Image is required";
     }
 
     setErrors(newErrors);
@@ -59,67 +64,72 @@ const ArticleCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setSubmitError('');
-    
+    setSubmitError("");
+
     if (!validateForm()) {
-      const firstErrorElement = document.querySelector('.text-red-500');
+      const firstErrorElement = document.querySelector(".text-red-500");
       if (firstErrorElement) {
-        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstErrorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
       }
       return;
     }
 
     try {
       setIsSubmitting(true);
-      
+
       const articleData = new FormData();
-      
+
       if (formData.image) {
         if (formData.image.size > 5 * 1024 * 1024) {
-          throw new Error('Image size must be less than 5MB');
+          throw new Error("Image size must be less than 5MB");
         }
-        articleData.append('image', formData.image);
+        articleData.append("image", formData.image);
       }
-      
-      articleData.append('title', formData.title.trim());
-      articleData.append('description', formData.description.trim());
-      articleData.append('category', formData.category);
-      
+
+      articleData.append("title", formData.title.trim());
+      articleData.append("description", formData.description.trim());
+      articleData.append("category", formData.category);
+
       if (formData.tags) {
         const tags = formData.tags
-          .split(',')
-          .map(tag => tag.trim())
+          .split(",")
+          .map((tag) => tag.trim())
           .filter(Boolean);
-        articleData.append('tags', JSON.stringify(tags));
+        articleData.append("tags", JSON.stringify(tags));
       }
 
       await createArticle(articleData);
-      
+
       setToast({
-        message: 'Article created successfully!',
-        type: 'success'
+        message: "Article created successfully!",
+        type: "success",
       });
 
       setTimeout(() => {
-        navigate('/articles/list');
+        navigate("/articles/list");
       }, 1500);
     } catch (error) {
-      console.error('Error creating article:', error);
-      let errorMessage = 'Failed to create article. Please try again.';
-      
+      console.error("Error creating article:", error);
+      let errorMessage = "Failed to create article. Please try again.";
+
       if (error.response) {
         if (error.response.status === 413) {
-          errorMessage = 'Image size is too large. Please use a smaller image (max 5MB).';
+          errorMessage =
+            "Image size is too large. Please use a smaller image (max 5MB).";
         } else {
-          errorMessage = error.response.data?.message || error.response.data || errorMessage;
+          errorMessage =
+            error.response.data?.message || error.response.data || errorMessage;
         }
       }
-      
+
       setSubmitError(errorMessage);
-      
-      const errorElement = document.querySelector('.text-red-500');
+
+      const errorElement = document.querySelector(".text-red-500");
       if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     } finally {
       setIsSubmitting(false);
@@ -128,15 +138,15 @@ const ArticleCreate = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -146,83 +156,57 @@ const ArticleCreate = () => {
     if (!file) return;
 
     try {
-      // Basic validation
-      if (!file.type.startsWith('image/')) {
-        setErrors(prev => ({ ...prev, image: 'Please select an image file' }));
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "Please select an image file",
+        }));
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'Image must be less than 5MB' }));
+        setErrors((prev) => ({
+          ...prev,
+          image: "Image must be less than 5MB",
+        }));
         return;
       }
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
 
-      // Set the file
-      setFormData(prev => ({ ...prev, image: file }));
-      setErrors(prev => ({ ...prev, image: '' }));
-
+      setFormData((prev) => ({ ...prev, image: file }));
+      setErrors((prev) => ({ ...prev, image: "" }));
     } catch (error) {
-      console.error('Error handling image:', error);
-      setErrors(prev => ({ ...prev, image: 'Failed to process image' }));
+      console.error("Error handling image:", error);
+      setErrors((prev) => ({ ...prev, image: "Failed to process image" }));
     }
   };
 
   const handleCategoryChange = (category) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      category
+      category,
     }));
-    
+
     if (errors.category) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        category: ''
+        category: "",
       }));
-    }
-  };
-
-  const handleImageUploadClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const input = document.getElementById('image');
-    if (input) {
-      input.click();
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const file = e.dataTransfer?.files[0];
-    if (file) {
-      await handleImageValidation(
-        file,
-        (error) => setErrors(prev => ({ ...prev, image: error })),
-        (image) => setFormData(prev => ({ ...prev, image })),
-        setImagePreview,
-        setToast
-      );
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 sm:py-8">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
-        <h1 className="heading-primary text-xl sm:text-2xl mb-6">Create New Article</h1>
-        
+        <h1 className="heading-primary text-xl sm:text-2xl mb-6">
+          Create New Article
+        </h1>
+
         {submitError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
             {submitError}
@@ -273,9 +257,10 @@ const ArticleCreate = () => {
                   key={category}
                   className={`relative flex items-center p-2 sm:p-4 cursor-pointer rounded-lg border-2 
                              transition-all duration-200 text-sm sm:text-base
-                             ${formData.category === category
-                               ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                               : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
+                             ${
+                               formData.category === category
+                                 ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                 : "border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800"
                              }`}
                   onClick={() => handleCategoryChange(category)}
                   onTouchEnd={(e) => {
@@ -292,20 +277,24 @@ const ArticleCreate = () => {
                     className="sr-only"
                   />
                   <div className="flex items-center">
-                    <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 mr-2 sm:mr-3 flex items-center justify-center
-                                   ${formData.category === category
-                                     ? 'border-primary-500 bg-primary-500'
-                                     : 'border-gray-300 dark:border-gray-600'
+                    <div
+                      className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 mr-2 sm:mr-3 flex items-center justify-center
+                                   ${
+                                     formData.category === category
+                                       ? "border-primary-500 bg-primary-500"
+                                       : "border-gray-300 dark:border-gray-600"
                                    }`}
                     >
                       {formData.category === category && (
                         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
                       )}
                     </div>
-                    <span className={`text-xs sm:text-sm font-medium
-                                    ${formData.category === category
-                                      ? 'text-primary-700 dark:text-primary-400'
-                                      : 'text-gray-700 dark:text-gray-300'
+                    <span
+                      className={`text-xs sm:text-sm font-medium
+                                    ${
+                                      formData.category === category
+                                        ? "text-primary-700 dark:text-primary-400"
+                                        : "text-gray-700 dark:text-gray-300"
                                     }`}
                     >
                       {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -333,7 +322,7 @@ const ArticleCreate = () => {
                     type="button"
                     onClick={() => {
                       setImagePreview(null);
-                      setFormData(prev => ({ ...prev, image: null }));
+                      setFormData((prev) => ({ ...prev, image: null }));
                     }}
                     className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full"
                   >
@@ -342,23 +331,23 @@ const ArticleCreate = () => {
                 </div>
               ) : (
                 <div className="text-center">
-                  <label 
-                    htmlFor="mobile-image-upload" 
+                  <label
+                    htmlFor="mobile-image-upload"
                     className="block w-full cursor-pointer"
                   >
                     <div className="space-y-4">
                       <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                        <svg 
-                          className="w-6 h-6 text-primary-600" 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          className="w-6 h-6 text-primary-600"
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M12 4v16m8-8H4" 
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
                           />
                         </svg>
                       </div>
@@ -415,7 +404,7 @@ const ArticleCreate = () => {
               disabled={isSubmitting}
               className="w-full sm:w-auto btn-primary"
             >
-              {isSubmitting ? 'Creating...' : 'Create Article'}
+              {isSubmitting ? "Creating..." : "Create Article"}
             </button>
           </div>
         </form>

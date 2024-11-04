@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getArticles } from "../userapi";
+import { getArticles } from "../api/userapi";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
 
@@ -57,10 +57,12 @@ const Home = () => {
     )
     .filter(
       (article) =>
-       ( article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.description.toLowerCase().includes(searchTerm.toLowerCase()))&&
-        (!article.deleted &&
-          !article.blocks.includes(user?._id) )
+        (article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          article.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) &&
+        !article.deleted &&
+        !article.blocks.includes(user?._id)
     );
 
   if (loading) {
@@ -123,7 +125,10 @@ const Home = () => {
             key={article._id}
             className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
           >
-            <Link to={`/articles/${article._id}`} className="flex flex-col md:flex-row">
+            <Link
+              to={`/articles/${article._id}`}
+              className="flex flex-col md:flex-row"
+            >
               {article.image ? (
                 <div className="md:w-1/3 lg:w-1/4">
                   <img
@@ -132,7 +137,8 @@ const Home = () => {
                     className="w-full h-48 md:h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "https://via.placeholder.com/150?text=No+Image";
+                      e.target.src =
+                        "https://via.placeholder.com/150?text=No+Image";
                     }}
                   />
                 </div>
@@ -143,13 +149,17 @@ const Home = () => {
               )}
               <div className="p-6 md:w-2/3 lg:w-3/4">
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                  <span>{new Date(article.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}</span>
+                  <span>
+                    {new Date(article.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
                   <span>•</span>
-                  <span>By {article.author.firstName} {article.author.lastName}</span>
+                  <span>
+                    By {article.author.firstName} {article.author.lastName}
+                  </span>
                   <span>•</span>
                   <span className="px-2 py-1 bg-gray-100 rounded-full">
                     {article.category}
@@ -163,8 +173,18 @@ const Home = () => {
                 </p>
                 <div className="flex items-center text-primary-600 font-medium">
                   Read more
-                  <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4 ml-1"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>

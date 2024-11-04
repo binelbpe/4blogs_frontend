@@ -1,108 +1,119 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../userapi';
-import { useAuth } from '../context/AuthContext';
-import { handleImageValidation } from '../utils/imageValidation';
-import Toast from '../components/Toast';
-import imageCompression from 'browser-image-compression';
-import { X } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "../api/userapi";
+import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
+import { X } from "lucide-react";
 
 const CATEGORIES = [
-  'sports', 'politics', 'space', 'technology', 'entertainment',
-  'health', 'science', 'business', 'education', 'travel',
-  'food', 'fashion', 'art', 'music', 'gaming', 'environment'
+  "sports",
+  "politics",
+  "space",
+  "technology",
+  "entertainment",
+  "health",
+  "science",
+  "business",
+  "education",
+  "travel",
+  "food",
+  "fashion",
+  "art",
+  "music",
+  "gaming",
+  "environment",
 ];
-
-const compressionOptions = {
-  maxSizeMB: 1,      // Maximum size in MB
-  maxWidthOrHeight: 1024,  // Maximum width/height
-  useWebWorker: true
-};
 
 const Register = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    dateOfBirth: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    dateOfBirth: "",
     preferences: [],
-    image: null
+    image: null,
   });
 
   const [formErrors, setFormErrors] = useState({});
-  const [backendError, setBackendError] = useState('');
+  const [backendError, setBackendError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const validateForm = () => {
     const errors = {};
-    const { firstName, lastName, email, phone, password, confirmPassword, dateOfBirth, preferences, image } = formData;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      confirmPassword,
+      dateOfBirth,
+      preferences,
+      image,
+    } = formData;
 
-    // First Name validation
     if (!firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = "First name is required";
     }
 
-    // Last Name validation
     if (!lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = "Last name is required";
     }
 
-    // Email validation
     if (!email) {
-      errors.email = 'Email is required';
+      errors.email = "Email is required";
     } else if (!/^[a-zA-Z0-9._-]+@[a-z]+\.[a-z]{2,}$/.test(email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = "Please enter a valid email address";
     }
 
-    // Phone validation (10 digits)
     if (!phone) {
-      errors.phone = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(phone.replace(/[-()\s]/g, ''))) {
-      errors.phone = 'Please enter a valid 10-digit phone number';
+      errors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(phone.replace(/[-()\s]/g, ""))) {
+      errors.phone = "Please enter a valid 10-digit phone number";
     }
 
-    // Password validation
     if (!password) {
-      errors.password = 'Password is required';
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
-      errors.password = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character';
+      errors.password = "Password is required";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        password
+      )
+    ) {
+      errors.password =
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character";
     }
 
-    // Confirm Password validation
     if (!confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password';
+      errors.confirmPassword = "Please confirm your password";
     } else if (password !== confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = "Passwords do not match";
     }
 
-    // Date of Birth validation
     if (!dateOfBirth) {
-      errors.dateOfBirth = 'Date of birth is required';
+      errors.dateOfBirth = "Date of birth is required";
     } else {
       const birthDate = new Date(dateOfBirth);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       if (age < 13) {
-        errors.dateOfBirth = 'You must be at least 13 years old to register';
+        errors.dateOfBirth = "You must be at least 13 years old to register";
       }
     }
 
-    // Preferences validation
     if (preferences.length === 0) {
-      errors.preferences = 'Please select at least one preference';
+      errors.preferences = "Please select at least one preference";
     }
 
-    // Image validation
     if (!image) {
-      errors.image = 'Profile image is required';
+      errors.image = "Profile image is required";
     }
 
     return errors;
@@ -110,20 +121,18 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear specific field error
     if (formErrors[name]) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
-    // Clear backend error
     if (backendError) {
-      setBackendError('');
+      setBackendError("");
     }
   };
 
@@ -132,106 +141,108 @@ const Register = () => {
     if (!file) return;
 
     try {
-      // Basic validation
-      if (!file.type.startsWith('image/')) {
-        setFormErrors(prev => ({ ...prev, image: 'Please select an image file' }));
+      if (!file.type.startsWith("image/")) {
+        setFormErrors((prev) => ({
+          ...prev,
+          image: "Please select an image file",
+        }));
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        setFormErrors(prev => ({ ...prev, image: 'Image must be less than 5MB' }));
+        setFormErrors((prev) => ({
+          ...prev,
+          image: "Image must be less than 5MB",
+        }));
         return;
       }
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
 
-      // Set the file
-      setFormData(prev => ({ ...prev, image: file }));
-      setFormErrors(prev => ({ ...prev, image: '' }));
-
+      setFormData((prev) => ({ ...prev, image: file }));
+      setFormErrors((prev) => ({ ...prev, image: "" }));
     } catch (error) {
-      console.error('Error handling image:', error);
-      setFormErrors(prev => ({ ...prev, image: 'Failed to process image' }));
+      console.error("Error handling image:", error);
+      setFormErrors((prev) => ({ ...prev, image: "Failed to process image" }));
     }
   };
 
   const handlePreferenceChange = (category) => {
     const currentPreferences = [...formData.preferences];
     const index = currentPreferences.indexOf(category);
-    
+
     if (index === -1) {
       currentPreferences.push(category);
     } else {
       currentPreferences.splice(index, 1);
     }
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      preferences: currentPreferences
+      preferences: currentPreferences,
     }));
-    
-    // Clear preferences error if exists
+
     if (formErrors.preferences && currentPreferences.length > 0) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        preferences: ''
+        preferences: "",
       }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setBackendError('');
+    setBackendError("");
     const errors = validateForm();
 
     if (Object.keys(errors).length === 0) {
       setIsSubmitting(true);
       try {
         const formDataToSend = new FormData();
-        
-        // Handle image separately
+
         if (formData.image) {
-          // Additional size check before submission
           if (formData.image.size > 5 * 1024 * 1024) {
-            throw new Error('Image size must be less than 5MB');
+            throw new Error("Image size must be less than 5MB");
           }
-          formDataToSend.append('image', formData.image);
+          formDataToSend.append("image", formData.image);
         }
 
-        // Append other form data
-        Object.keys(formData).forEach(key => {
-          if (key === 'preferences') {
+        Object.keys(formData).forEach((key) => {
+          if (key === "preferences") {
             formDataToSend.append(key, JSON.stringify(formData[key]));
-          } else if (key !== 'image' && key !== 'confirmPassword') {
+          } else if (key !== "image" && key !== "confirmPassword") {
             formDataToSend.append(key, formData[key]);
           }
         });
 
         const response = await register(formDataToSend);
-        
+
         if (response.success) {
           login(response.data.user);
-          navigate('/', { replace: true });
+          navigate("/", { replace: true });
         } else {
-          throw new Error(response.message || 'Registration failed');
+          throw new Error(response.message || "Registration failed");
         }
       } catch (error) {
-        console.error('Registration error:', error);
-        let errorMessage = 'Registration failed. Please try again.';
-        
+        console.error("Registration error:", error);
+        let errorMessage = "Registration failed. Please try again.";
+
         if (error.response) {
           if (error.response.status === 413) {
-            errorMessage = 'Image size is too large. Please use a smaller image (max 5MB).';
+            errorMessage =
+              "Image size is too large. Please use a smaller image (max 5MB).";
           } else {
-            errorMessage = error.response.data?.message || error.response.data || errorMessage;
+            errorMessage =
+              error.response.data?.message ||
+              error.response.data ||
+              errorMessage;
           }
         }
-        
+
         setBackendError(errorMessage);
       } finally {
         setIsSubmitting(false);
@@ -269,7 +280,7 @@ const Register = () => {
                     type="button"
                     onClick={() => {
                       setImagePreview(null);
-                      setFormData(prev => ({ ...prev, image: null }));
+                      setFormData((prev) => ({ ...prev, image: null }));
                     }}
                     className="absolute top-0 right-1/2 transform translate-x-16 -translate-y-2 
                                bg-red-500 text-white p-2 rounded-full"
@@ -279,23 +290,23 @@ const Register = () => {
                 </div>
               ) : (
                 <div className="text-center">
-                  <label 
-                    htmlFor="profile-image-upload" 
+                  <label
+                    htmlFor="profile-image-upload"
                     className="block w-full cursor-pointer"
                   >
                     <div className="space-y-4">
                       <div className="mx-auto w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center">
-                        <svg 
-                          className="w-8 h-8 text-gray-400" 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          className="w-8 h-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M12 4v16m8-8H4" 
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
                           />
                         </svg>
                       </div>
@@ -326,7 +337,9 @@ const Register = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="form-label">First Name</label>
+              <label htmlFor="firstName" className="form-label">
+                First Name
+              </label>
               <input
                 id="firstName"
                 name="firstName"
@@ -336,12 +349,16 @@ const Register = () => {
                 onChange={handleChange}
               />
               {formErrors.firstName && (
-                <div className="text-red-500 text-sm mt-1">{formErrors.firstName}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {formErrors.firstName}
+                </div>
               )}
             </div>
 
             <div>
-              <label htmlFor="lastName" className="form-label">Last Name</label>
+              <label htmlFor="lastName" className="form-label">
+                Last Name
+              </label>
               <input
                 id="lastName"
                 name="lastName"
@@ -351,13 +368,17 @@ const Register = () => {
                 onChange={handleChange}
               />
               {formErrors.lastName && (
-                <div className="text-red-500 text-sm mt-1">{formErrors.lastName}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {formErrors.lastName}
+                </div>
               )}
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="form-label">Email</label>
+            <label htmlFor="email" className="form-label">
+              Email
+            </label>
             <input
               id="email"
               name="email"
@@ -367,12 +388,16 @@ const Register = () => {
               onChange={handleChange}
             />
             {formErrors.email && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.email}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.email}
+              </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="phone" className="form-label">Phone</label>
+            <label htmlFor="phone" className="form-label">
+              Phone
+            </label>
             <input
               id="phone"
               name="phone"
@@ -382,12 +407,16 @@ const Register = () => {
               onChange={handleChange}
             />
             {formErrors.phone && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.phone}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.phone}
+              </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="dateOfBirth" className="form-label">Date of Birth</label>
+            <label htmlFor="dateOfBirth" className="form-label">
+              Date of Birth
+            </label>
             <input
               id="dateOfBirth"
               name="dateOfBirth"
@@ -397,12 +426,16 @@ const Register = () => {
               onChange={handleChange}
             />
             {formErrors.dateOfBirth && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.dateOfBirth}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.dateOfBirth}
+              </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="form-label">Password</label>
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
             <input
               id="password"
               name="password"
@@ -412,12 +445,16 @@ const Register = () => {
               onChange={handleChange}
             />
             {formErrors.password && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.password}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.password}
+              </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="form-label">
+              Confirm Password
+            </label>
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -427,7 +464,9 @@ const Register = () => {
               onChange={handleChange}
             />
             {formErrors.confirmPassword && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.confirmPassword}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.confirmPassword}
+              </div>
             )}
           </div>
 
@@ -435,7 +474,10 @@ const Register = () => {
             <label className="form-label">Preferences</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {CATEGORIES.map((category) => (
-                <label key={category} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                <label
+                  key={category}
+                  className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
+                >
                   <input
                     type="checkbox"
                     name="preferences"
@@ -449,7 +491,9 @@ const Register = () => {
               ))}
             </div>
             {formErrors.preferences && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.preferences}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.preferences}
+              </div>
             )}
           </div>
 
@@ -459,9 +503,12 @@ const Register = () => {
               className="w-full sm:w-auto btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Registering...' : 'Register'}
+              {isSubmitting ? "Registering..." : "Register"}
             </button>
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 text-sm">
+            <Link
+              to="/login"
+              className="text-primary-600 hover:text-primary-700 text-sm"
+            >
               Already have an account? Sign in
             </Link>
           </div>
