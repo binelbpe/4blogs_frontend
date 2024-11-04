@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "../api/userapi";
 import { useNavigate } from "react-router-dom";
@@ -160,19 +160,39 @@ const UpdateProfile = () => {
   const handleImageChange = async (event) => {
     const file = event.currentTarget.files[0];
     if (file) {
-      const isValid = await handleImageValidation(
-        file,
-        (error) => setErrors((prev) => ({ ...prev, image: error })),
-        (image) => setFormData((prev) => ({ ...prev, image })),
-        setImagePreview,
-        setMessage
-          ? (msg) => setMessage({ type: "error", text: msg.message })
-          : null
-      );
+      try {
+        if (!file.type.startsWith("image/")) {
+          setErrors((prev) => ({
+            ...prev,
+            image: "Please select an image file",
+          }));
+          return;
+        }
 
-      if (!isValid) {
-        setFormData((prev) => ({ ...prev, image: null }));
-        setImagePreview(null);
+        if (file.size > 5 * 1024 * 1024) {
+          setErrors((prev) => ({
+            ...prev,
+            image: "Image must be less than 5MB",
+          }));
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        setFormData((prev) => ({
+          ...prev,
+          image: file,
+          removeImage: false,
+        }));
+        setErrors((prev) => ({ ...prev, image: "" }));
+      } catch (error) {
+        console.error("Error handling image:", error);
+        setErrors((prev) => ({ ...prev, image: "Failed to process image" }));
+        setMessage({ type: "error", text: "Failed to process image" });
       }
     }
   };
@@ -207,19 +227,23 @@ const UpdateProfile = () => {
     try {
       const formDataToSend = new FormData();
 
+      if (formData.removeImage) {
+        formDataToSend.append("removeImage", "true");
+      } else if (formData.image instanceof File) {
+        formDataToSend.append("image", formData.image);
+      }
+
       Object.keys(formData).forEach((key) => {
-        if (key === "image" && formData[key]) {
-          formDataToSend.append("image", formData[key]);
-        } else if (key === "preferences") {
-          formDataToSend.append("preferences", JSON.stringify(formData[key]));
-        } else if (key === "removeImage" && formData[key]) {
-          formDataToSend.append("removeImage", "true");
-        } else if (
-          key !== "confirmNewPassword" &&
-          formData[key] !== "" &&
-          formData[key] !== user[key]
+        if (
+          key !== "image" &&
+          key !== "removeImage" &&
+          key !== "confirmNewPassword"
         ) {
-          formDataToSend.append(key, formData[key]);
+          if (key === "preferences") {
+            formDataToSend.append("preferences", JSON.stringify(formData[key]));
+          } else if (formData[key] !== "" && formData[key] !== user[key]) {
+            formDataToSend.append(key, formData[key]);
+          }
         }
       });
 
@@ -227,6 +251,12 @@ const UpdateProfile = () => {
 
       if (response.success) {
         dispatch(updateUserAction(response.data.user));
+        if (response.data.user.image) {
+          setImagePreview(
+            `${process.env.PUBLIC_URL}${response.data.user.image}`
+          );
+        }
+
         setMessage({
           type: "success",
           text: "Profile updated successfully! Redirecting to profile...",
@@ -249,6 +279,12 @@ const UpdateProfile = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (user?.image) {
+      setImagePreview(`${process.env.PUBLIC_URL}${user.image}`);
+    }
+  }, [user]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

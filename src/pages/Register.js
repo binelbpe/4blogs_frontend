@@ -196,7 +196,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setBackendError("");
+    setBackendError('');
     const errors = validateForm();
 
     if (Object.keys(errors).length === 0) {
@@ -206,15 +206,15 @@ const Register = () => {
 
         if (formData.image) {
           if (formData.image.size > 5 * 1024 * 1024) {
-            throw new Error("Image size must be less than 5MB");
+            throw new Error('Image size must be less than 5MB');
           }
-          formDataToSend.append("image", formData.image);
+          formDataToSend.append('image', formData.image);
         }
 
         Object.keys(formData).forEach((key) => {
-          if (key === "preferences") {
+          if (key === 'preferences') {
             formDataToSend.append(key, JSON.stringify(formData[key]));
-          } else if (key !== "image" && key !== "confirmPassword") {
+          } else if (key !== 'image' && key !== 'confirmPassword') {
             formDataToSend.append(key, formData[key]);
           }
         });
@@ -222,24 +222,27 @@ const Register = () => {
         const response = await register(formDataToSend);
 
         if (response.success) {
+          localStorage.setItem('token', response.data.token);
           login(response.data.user);
-          navigate("/", { replace: true });
+          setToast({
+            message: 'Registration successful! Welcome to 4BLOGS!',
+            type: 'success'
+          });
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 1500);
         } else {
-          throw new Error(response.message || "Registration failed");
+          throw new Error(response.message || 'Registration failed');
         }
       } catch (error) {
-        console.error("Registration error:", error);
-        let errorMessage = "Registration failed. Please try again.";
+        console.error('Registration error:', error);
+        let errorMessage = 'Registration failed. Please try again.';
 
         if (error.response) {
           if (error.response.status === 413) {
-            errorMessage =
-              "Image size is too large. Please use a smaller image (max 5MB).";
+            errorMessage = 'Image size is too large. Please use a smaller image (max 5MB).';
           } else {
-            errorMessage =
-              error.response.data?.message ||
-              error.response.data ||
-              errorMessage;
+            errorMessage = error.response.data?.message || error.response.data || errorMessage;
           }
         }
 
