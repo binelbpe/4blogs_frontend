@@ -1,5 +1,6 @@
 {
-  "name": "frontend_myblog",
+  "name": "frontend_4blogs",
+  "homepage": "https://4blogs.fun", 
   "version": "0.1.0",
   "private": true,
   "dependencies": {

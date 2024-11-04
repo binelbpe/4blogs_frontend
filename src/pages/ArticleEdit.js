@@ -52,7 +52,7 @@ const ArticleEditor = () => {
           removeImage: false,
           image: null
         });
-        setImagePreview(article.image ? `http://localhost:5000${article.image}` : null);
+        setImagePreview(article.image ? `${process.env.PUBLIC_URL}${article.image}` : null);
         setAuthor(article.author);
         setBlocks(article.blocks || []);
         setLoading(false);

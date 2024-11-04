@@ -121,7 +121,7 @@ const Dashboard = () => {
               <Link to={`/articles/${article._id}`} className="flex flex-col md:flex-row">
                 <div className="md:w-1/3 lg:w-1/4 overflow-hidden">
                   <img
-                    src={`http://localhost:5000${article.image}`}
+                    src={`${process.env.PUBLIC_URL}${article.image}`}
                     alt={article.title}
                     className="w-full h-48 md:h-full object-cover transform hover:scale-110 transition-transform duration-500"
                   />

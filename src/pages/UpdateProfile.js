@@ -33,7 +33,7 @@ const UpdateProfile = () => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
   const [imagePreview, setImagePreview] = useState(
-    user?.image ? `http://localhost:5000${user.image}` : null
+    user?.image ? `${process.env.PUBLIC_URL}${user.image}` : null
   );
 
   const validateField = (name, value, allValues = formData) => {

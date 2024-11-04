@@ -127,7 +127,7 @@ const Home = () => {
               {article.image ? (
                 <div className="md:w-1/3 lg:w-1/4">
                   <img
-                    src={`http://localhost:5000${article.image}`}
+                    src={`${process.env.PUBLIC_URL}${article.image}`}
                     alt={article.title}
                     className="w-full h-48 md:h-full object-cover"
                     onError={(e) => {

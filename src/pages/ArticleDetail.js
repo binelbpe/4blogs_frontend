@@ -85,7 +85,7 @@ const ArticleDetail = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         {article.image ? (
           <img
-            src={`http://localhost:5000${article.image}`}
+            src={`${process.env.PUBLIC_URL}${article.image}`}
             alt={article.title}
             className="w-full h-96 object-cover"
           />

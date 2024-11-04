@@ -62,7 +62,7 @@ const Profile = () => {
           <div className="flex items-center space-x-4">
             {user.image ? (
               <img
-                src={`http://localhost:5000${user.image}`}
+                src={`${process.env.PUBLIC_URL}${user.image}`}
                 alt={`${user.firstName} ${user.lastName}`}
                 className="w-24 h-24 rounded-full object-cover"
                 onError={(e) => {
@@ -132,7 +132,7 @@ const Profile = () => {
             >
               {article.image ? (
                 <img
-                  src={`http://localhost:5000${article.image}`}
+                  src={`${process.env.PUBLIC_URL}{article.image}`}
                   alt={article.title}
                   className="w-full h-48 object-cover"
                   onError={(e) => {

@@ -98,7 +98,7 @@ const ArticleList = () => {
                       {article.image ? (
                         <img
                           className="h-16 w-16 object-cover rounded"
-                          src={`http://localhost:5000${article.image}`}
+                          src={`${process.env.PUBLIC_URL}${article.image}`}
                           alt={article.title}
                           onError={(e) => {
                             e.target.onerror = null;
