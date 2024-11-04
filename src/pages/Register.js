@@ -126,49 +126,36 @@ const Register = () => {
     }
   };
 
-  const handleImageChange = async (event) => {
-    const file = event.currentTarget.files[0];
-    if (file) {
-      try {
-        // Check file size before compression
-        if (file.size > 5 * 1024 * 1024) {
-          setFormErrors(prev => ({
-            ...prev,
-            image: 'Image size must be less than 5MB'
-          }));
-          return;
-        }
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        // Compress image
-        let compressedFile = file;
-        if (file.size > 1024 * 1024) { // If larger than 1MB, compress
-          try {
-            compressedFile = await imageCompression(file, compressionOptions);
-          } catch (error) {
-            console.error('Image compression failed:', error);
-            // Continue with original file if compression fails
-          }
-        }
-
-        const isValid = await handleImageValidation(
-          compressedFile,
-          (error) => setFormErrors(prev => ({ ...prev, image: error })),
-          (image) => setFormData(prev => ({ ...prev, image })),
-          setImagePreview,
-          setToast
-        );
-
-        if (!isValid) {
-          setFormData(prev => ({ ...prev, image: null }));
-          setImagePreview(null);
-        }
-      } catch (error) {
-        console.error('Image processing error:', error);
-        setFormErrors(prev => ({
-          ...prev,
-          image: 'Failed to process image. Please try another one.'
-        }));
+    try {
+      // Basic validation
+      if (!file.type.startsWith('image/')) {
+        setFormErrors(prev => ({ ...prev, image: 'Please select an image file' }));
+        return;
       }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setFormErrors(prev => ({ ...prev, image: 'Image must be less than 5MB' }));
+        return;
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Set the file
+      setFormData(prev => ({ ...prev, image: file }));
+      setFormErrors(prev => ({ ...prev, image: '' }));
+
+    } catch (error) {
+      console.error('Error handling image:', error);
+      setFormErrors(prev => ({ ...prev, image: 'Failed to process image' }));
     }
   };
 
@@ -267,15 +254,15 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div>
-            <label className="form-label">Profile Image</label>
-            <div className="mt-1 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          <div className="space-y-2">
+            <label className="form-label">Profile Picture</label>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-dashed border-gray-300">
               {imagePreview ? (
                 <div className="relative">
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="w-24 h-24 rounded-full object-cover"
+                    className="w-32 h-32 mx-auto rounded-full object-cover"
                   />
                   <button
                     type="button"
@@ -283,34 +270,56 @@ const Register = () => {
                       setImagePreview(null);
                       setFormData(prev => ({ ...prev, image: null }));
                     }}
-                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                    className="absolute top-0 right-1/2 transform translate-x-16 -translate-y-2 
+                               bg-red-500 text-white p-2 rounded-full"
                   >
-                    ✕
+                    <X size={16} />
                   </button>
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
-                  <span className="text-gray-400">No image</span>
+                <div className="text-center">
+                  <label 
+                    htmlFor="profile-image-upload" 
+                    className="block w-full cursor-pointer"
+                  >
+                    <div className="space-y-4">
+                      <div className="mx-auto w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center">
+                        <svg 
+                          className="w-8 h-8 text-gray-400" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M12 4v16m8-8H4" 
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="mt-2 block text-sm font-medium text-gray-900">
+                          Add Profile Picture
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          Max size: 5MB
+                        </span>
+                      </div>
+                    </div>
+                  </label>
+                  <input
+                    id="profile-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
                 </div>
               )}
-              <input
-                id="image"
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => document.getElementById('image').click()}
-                className="btn-primary"
-              >
-                Upload Image
-              </button>
             </div>
             {formErrors.image && (
-              <div className="text-red-500 text-sm mt-1">{formErrors.image}</div>
+              <p className="text-red-500 text-sm mt-1">{formErrors.image}</p>
             )}
           </div>
 

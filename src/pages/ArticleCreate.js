@@ -4,12 +4,19 @@ import { X } from 'lucide-react';
 import { createArticle } from '../userapi';
 import { handleImageValidation } from '../utils/imageValidation';
 import Toast from '../components/Toast';
+import imageCompression from 'browser-image-compression';
 
 const CATEGORIES = [
   'sports', 'politics', 'space', 'technology', 'entertainment',
   'health', 'science', 'business', 'education', 'travel',
   'food', 'fashion', 'art', 'music', 'gaming', 'environment'
 ];
+
+const compressionOptions = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1024,
+  useWebWorker: true
+};
 
 const ArticleCreate = () => {
   const navigate = useNavigate();
@@ -51,11 +58,10 @@ const ArticleCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent any bubbling
+    e.stopPropagation();
     setSubmitError('');
     
     if (!validateForm()) {
-      // Scroll to the first error
       const firstErrorElement = document.querySelector('.text-red-500');
       if (firstErrorElement) {
         firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -68,14 +74,16 @@ const ArticleCreate = () => {
       
       const articleData = new FormData();
       
-      // Ensure proper data formatting
+      if (formData.image) {
+        if (formData.image.size > 5 * 1024 * 1024) {
+          throw new Error('Image size must be less than 5MB');
+        }
+        articleData.append('image', formData.image);
+      }
+      
       articleData.append('title', formData.title.trim());
       articleData.append('description', formData.description.trim());
       articleData.append('category', formData.category);
-      
-      if (formData.image instanceof File) {
-        articleData.append('image', formData.image);
-      }
       
       if (formData.tags) {
         const tags = formData.tags
@@ -87,25 +95,28 @@ const ArticleCreate = () => {
 
       await createArticle(articleData);
       
-      // Show success message
       setToast({
         message: 'Article created successfully!',
         type: 'success'
       });
 
-      // Delay navigation to show the success message
       setTimeout(() => {
         navigate('/articles/list');
       }, 1500);
     } catch (error) {
       console.error('Error creating article:', error);
-      setSubmitError(
-        error.response?.data?.message || 
-        error.message || 
-        'Failed to create article. Please try again.'
-      );
+      let errorMessage = 'Failed to create article. Please try again.';
       
-      // Scroll error into view
+      if (error.response) {
+        if (error.response.status === 413) {
+          errorMessage = 'Image size is too large. Please use a smaller image (max 5MB).';
+        } else {
+          errorMessage = error.response.data?.message || error.response.data || errorMessage;
+        }
+      }
+      
+      setSubmitError(errorMessage);
+      
       const errorElement = document.querySelector('.text-red-500');
       if (errorElement) {
         errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -132,19 +143,34 @@ const ArticleCreate = () => {
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const isValid = await handleImageValidation(
-        file,
-        (error) => setErrors(prev => ({ ...prev, image: error })),
-        (image) => setFormData(prev => ({ ...prev, image })),
-        setImagePreview,
-        setToast
-      );
+    if (!file) return;
 
-      if (!isValid) {
-        setFormData(prev => ({ ...prev, image: null }));
-        setImagePreview(null);
+    try {
+      // Basic validation
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, image: 'Please select an image file' }));
+        return;
       }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image must be less than 5MB' }));
+        return;
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Set the file
+      setFormData(prev => ({ ...prev, image: file }));
+      setErrors(prev => ({ ...prev, image: '' }));
+
+    } catch (error) {
+      console.error('Error handling image:', error);
+      setErrors(prev => ({ ...prev, image: 'Failed to process image' }));
     }
   };
 
@@ -162,7 +188,6 @@ const ArticleCreate = () => {
     }
   };
 
-  // Add touch event handlers for mobile
   const handleImageUploadClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -296,80 +321,66 @@ const ArticleCreate = () => {
 
           <div className="space-y-2">
             <label className="form-label">Article Image</label>
-            <div
-              className="relative flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 
-                         border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg 
-                         hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-200
-                         cursor-pointer"
-              onClick={handleImageUploadClick}
-              onTouchStart={handleImageUploadClick}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="space-y-1 text-center">
-                {imagePreview ? (
-                  <div className="relative inline-block">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="mx-auto h-32 sm:h-48 w-full object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setImagePreview(null);
-                        setFormData(prev => ({ ...prev, image: null }));
-                      }}
-                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full
-                                hover:bg-red-600 transition-colors duration-200
-                                touch-manipulation"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <svg 
-                      className="mx-auto h-12 w-12 text-gray-400" 
-                      stroke="currentColor" 
-                      fill="none" 
-                      viewBox="0 0 48 48"
-                    >
-                      <path 
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                      />
-                    </svg>
-                    <div className="flex flex-col sm:flex-row items-center justify-center text-sm text-gray-600 dark:text-gray-400">
-                      <label 
-                        htmlFor="image" 
-                        className="relative cursor-pointer rounded-md font-medium text-primary-600 
-                                 dark:text-primary-400 hover:text-primary-500"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="image"
-                          name="image"
-                          type="file"
-                          className="sr-only"
-                          onChange={handleImageChange}
-                          accept="image/*"
-                          capture="environment"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-dashed border-gray-300">
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImagePreview(null);
+                      setFormData(prev => ({ ...prev, image: null }));
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <label 
+                    htmlFor="mobile-image-upload" 
+                    className="block w-full cursor-pointer"
+                  >
+                    <div className="space-y-4">
+                      <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg 
+                          className="w-6 h-6 text-primary-600" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M12 4v16m8-8H4" 
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="mt-2 block text-sm font-medium text-gray-900">
+                          Add Article Image
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          Max size: 5MB
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      PNG, JPG, GIF up to 5MB
-                    </p>
-                  </>
-                )}
-              </div>
+                  </label>
+                  <input
+                    id="mobile-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+              )}
             </div>
             {errors.image && (
               <p className="text-red-500 text-sm mt-1">{errors.image}</p>
