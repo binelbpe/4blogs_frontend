@@ -132,7 +132,7 @@ const Profile = () => {
             >
               {article.image ? (
                 <img
-                  src={`${process.env.PUBLIC_URL}{article.image}`}
+                  src={`${process.env.PUBLIC_URL}${article.image}`}
                   alt={article.title}
                   className="w-full h-48 object-cover"
                   onError={(e) => {

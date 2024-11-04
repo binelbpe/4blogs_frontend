@@ -37,47 +37,91 @@ const UpdateProfile = () => {
   );
 
   const validateField = (name, value, allValues = formData) => {
+    if (!value && name !== 'newPassword' && name !== 'currentPassword') {
+      return '';
+    }
+
     switch (name) {
       case 'email':
         if (value && !/^[a-zA-Z0-9._-]+@[a-z]+\.[a-z]{2,}$/.test(value)) {
-         return 'Please enter a valid email address';
+          return 'Please enter a valid email address';
         }
         break;
+
+      case 'phone':
+        if (value && !/^\d{10}$/.test(value.replace(/[-()\s]/g, ''))) {
+          return 'Please enter a valid 10-digit phone number';
+        }
+        break;
+
       case 'newPassword':
-        if (value && value.length < 8) {
-          return 'Must be at least 8 characters';
-        }
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
-          return 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character';
-        }
-        if (allValues.currentPassword && !value) {
-          return 'New password is required when current password is provided';
+        if (allValues.currentPassword || value) {
+          if (!value) {
+            return 'New password is required when current password is provided';
+          }
+          if (value && value.length < 8) {
+            return 'Must be at least 8 characters';
+          }
+          if (value && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
+            return 'Password must include uppercase, lowercase, number and special character';
+          }
         }
         break;
+
       case 'currentPassword':
-        if (allValues.newPassword && !value) {
-          return 'Current password is required to change password';
+        if (allValues.newPassword || value) {
+          if (!value) {
+            return 'Current password is required to change password';
+          }
         }
         break;
+
       case 'confirmNewPassword':
         if (allValues.newPassword && value !== allValues.newPassword) {
           return 'Passwords must match';
         }
         break;
-      default:
-        return '';
+
+      case 'image':
+        if (value && value.size > 5 * 1024 * 1024) {
+          return 'Image must be less than 5MB';
+        }
+        break;
     }
     return '';
   };
 
   const validateForm = (data) => {
     const newErrors = {};
-    Object.keys(data).forEach(key => {
+    const changedFields = Object.keys(data).filter(key => {
+      if (key === 'image') {
+        return data[key] !== null;
+      }
+      if (key === 'preferences') {
+        return true;
+      }
+      if (key === 'removeImage') {
+        return data[key] === true;
+      }
+      return data[key] !== user[key] && data[key] !== '';
+    });
+
+    changedFields.forEach(key => {
       const error = validateField(key, data[key], data);
       if (error) {
         newErrors[key] = error;
       }
     });
+
+    if (data.currentPassword || data.newPassword || data.confirmNewPassword) {
+      ['currentPassword', 'newPassword', 'confirmNewPassword'].forEach(field => {
+        const error = validateField(field, data[field], data);
+        if (error) {
+          newErrors[field] = error;
+        }
+      });
+    }
+
     return newErrors;
   };
 
@@ -130,7 +174,6 @@ const UpdateProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate all fields
     const formErrors = validateForm(formData);
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -140,16 +183,19 @@ const UpdateProfile = () => {
     try {
       const formDataToSend = new FormData();
       
-      // Add fields only if they have values
       Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          if (key === 'image') {
-            formDataToSend.append('image', formData[key]);
-          } else if (key === 'preferences') {
-            formDataToSend.append('preferences', JSON.stringify(formData[key]));
-          } else if (key !== 'confirmNewPassword') {
-            formDataToSend.append(key, formData[key]);
-          }
+        if (key === 'image' && formData[key]) {
+          formDataToSend.append('image', formData[key]);
+        } else if (key === 'preferences') {
+          formDataToSend.append('preferences', JSON.stringify(formData[key]));
+        } else if (key === 'removeImage' && formData[key]) {
+          formDataToSend.append('removeImage', 'true');
+        } else if (
+          key !== 'confirmNewPassword' && 
+          formData[key] !== '' && 
+          formData[key] !== user[key]
+        ) {
+          formDataToSend.append(key, formData[key]);
         }
       });
 

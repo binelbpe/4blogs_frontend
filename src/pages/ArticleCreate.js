@@ -51,9 +51,15 @@ const ArticleCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any bubbling
     setSubmitError('');
     
     if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorElement = document.querySelector('.text-red-500');
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -61,12 +67,16 @@ const ArticleCreate = () => {
       setIsSubmitting(true);
       
       const articleData = new FormData();
-      articleData.append('title', formData.title);
-      articleData.append('description', formData.description);
+      
+      // Ensure proper data formatting
+      articleData.append('title', formData.title.trim());
+      articleData.append('description', formData.description.trim());
       articleData.append('category', formData.category);
-      if (formData.image) {
+      
+      if (formData.image instanceof File) {
         articleData.append('image', formData.image);
       }
+      
       if (formData.tags) {
         const tags = formData.tags
           .split(',')
@@ -76,10 +86,30 @@ const ArticleCreate = () => {
       }
 
       await createArticle(articleData);
-      navigate('/articles/list');
+      
+      // Show success message
+      setToast({
+        message: 'Article created successfully!',
+        type: 'success'
+      });
+
+      // Delay navigation to show the success message
+      setTimeout(() => {
+        navigate('/articles/list');
+      }, 1500);
     } catch (error) {
       console.error('Error creating article:', error);
-      setSubmitError(error.response?.data?.message || 'Failed to create article. Please try again.');
+      setSubmitError(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to create article. Please try again.'
+      );
+      
+      // Scroll error into view
+      const errorElement = document.querySelector('.text-red-500');
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -129,6 +159,14 @@ const ArticleCreate = () => {
         ...prev,
         category: ''
       }));
+    }
+  };
+
+  // Add this function to handle mobile image upload
+  const handleImageUpload = () => {
+    const input = document.getElementById('image');
+    if (input) {
+      input.click();
     }
   };
 
@@ -191,6 +229,11 @@ const ArticleCreate = () => {
                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
                              }`}
+                  onClick={() => handleCategoryChange(category)}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    handleCategoryChange(category);
+                  }}
                 >
                   <input
                     type="radio"
@@ -230,9 +273,14 @@ const ArticleCreate = () => {
 
           <div className="space-y-2">
             <label className="form-label">Article Image</label>
-            <div className="flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 border-2 border-gray-300 dark:border-gray-600 
-                           border-dashed rounded-lg hover:border-primary-500 dark:hover:border-primary-400
-                           transition-colors duration-200">
+            <div 
+              className="flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 border-2 border-gray-300 
+                         dark:border-gray-600 border-dashed rounded-lg hover:border-primary-500 
+                         dark:hover:border-primary-400 transition-colors duration-200"
+              onClick={handleImageUpload}
+              role="button"
+              tabIndex={0}
+            >
               <div className="space-y-1 text-center">
                 {imagePreview ? (
                   <div className="relative">

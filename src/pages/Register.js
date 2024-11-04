@@ -163,6 +163,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any bubbling
     setBackendError('');
     const errors = validateForm();
 
@@ -171,40 +172,47 @@ const Register = () => {
       try {
         const formDataToSend = new FormData();
         
-        // Append all form fields to FormData
+        // Ensure all form data is properly appended
         Object.keys(formData).forEach(key => {
           if (key === 'preferences') {
-            formDataToSend.append(key, JSON.stringify(formData[key]));
-          } else if (key !== 'confirmPassword') {
+            // Ensure preferences is always an array
+            const prefsArray = Array.isArray(formData[key]) ? formData[key] : [];
+            formDataToSend.append(key, JSON.stringify(prefsArray));
+          } else if (key === 'image' && formData[key]) {
+            // Only append image if it exists
             formDataToSend.append(key, formData[key]);
+          } else if (key !== 'confirmPassword') {
+            // Ensure value is converted to string
+            formDataToSend.append(key, String(formData[key] || ''));
           }
         });
-
 
         const response = await register(formDataToSend);
         
         if (response.success) {
           login(response.data.user);
-          navigate('/');
+          navigate('/', { replace: true });
         } else {
           throw new Error(response.message || 'Registration failed');
         }
       } catch (error) {
         console.error('Registration error:', error);
-        
-        
-        if (error.response) {
-              setBackendError(error.response.data?.message || error.response.data|| error.response || 'Registration failed. Please try again.');
-        } else if (error.request) {
-          setBackendError('Unable to connect to the server. Please check your internet connection.');
-        } else {
-          setBackendError('An unexpected error occurred. Please try again.');
-        }
+        setBackendError(
+          error.response?.data?.message || 
+          error.message || 
+          'Registration failed. Please try again.'
+        );
       } finally {
         setIsSubmitting(false);
       }
     } else {
       setFormErrors(errors);
+      // Scroll to the first error
+      const firstError = Object.keys(errors)[0];
+      const errorElement = document.getElementById(firstError);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
   };
 
