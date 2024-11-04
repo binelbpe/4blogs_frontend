@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { handleImageValidation } from '../utils/imageValidation';
 import Toast from '../components/Toast';
 import imageCompression from 'browser-image-compression';
+import { X } from 'lucide-react';
 
 const CATEGORIES = [
   'sports', 'politics', 'space', 'technology', 'entertainment',
