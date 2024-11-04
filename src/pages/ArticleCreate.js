@@ -133,17 +133,17 @@ const ArticleCreate = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h1 className="heading-primary mb-8">Create New Article</h1>
+    <div className="max-w-2xl mx-auto px-4 py-6 sm:py-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
+        <h1 className="heading-primary text-xl sm:text-2xl mb-6">Create New Article</h1>
         
         {submitError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
             {submitError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label htmlFor="title" className="form-label">
               Title
@@ -181,12 +181,12 @@ const ArticleCreate = () => {
 
           <div className="space-y-2">
             <label className="form-label">Category</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
               {CATEGORIES.map((category) => (
                 <label
                   key={category}
-                  className={`relative flex items-center p-4 cursor-pointer rounded-lg border-2 
-                             transition-all duration-200 
+                  className={`relative flex items-center p-2 sm:p-4 cursor-pointer rounded-lg border-2 
+                             transition-all duration-200 text-sm sm:text-base
                              ${formData.category === category
                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
@@ -201,17 +201,17 @@ const ArticleCreate = () => {
                     className="sr-only"
                   />
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center
+                    <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 mr-2 sm:mr-3 flex items-center justify-center
                                    ${formData.category === category
                                      ? 'border-primary-500 bg-primary-500'
                                      : 'border-gray-300 dark:border-gray-600'
                                    }`}
                     >
                       {formData.category === category && (
-                        <div className="w-2 h-2 rounded-full bg-white" />
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
                       )}
                     </div>
-                    <span className={`text-sm font-medium
+                    <span className={`text-xs sm:text-sm font-medium
                                     ${formData.category === category
                                       ? 'text-primary-700 dark:text-primary-400'
                                       : 'text-gray-700 dark:text-gray-300'
@@ -230,7 +230,7 @@ const ArticleCreate = () => {
 
           <div className="space-y-2">
             <label className="form-label">Article Image</label>
-            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 
+            <div className="flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 border-2 border-gray-300 dark:border-gray-600 
                            border-dashed rounded-lg hover:border-primary-500 dark:hover:border-primary-400
                            transition-colors duration-200">
               <div className="space-y-1 text-center">
@@ -239,7 +239,7 @@ const ArticleCreate = () => {
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="mx-auto h-48 w-full object-cover rounded-lg"
+                      className="mx-auto h-32 sm:h-48 w-full object-cover rounded-lg"
                     />
                     <button
                       type="button"
@@ -299,18 +299,18 @@ const ArticleCreate = () => {
             />
           </div>
 
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="btn-secondary"
+              className="w-full sm:w-auto btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-primary"
+              className="w-full sm:w-auto btn-primary"
             >
               {isSubmitting ? 'Creating...' : 'Create Article'}
             </button>

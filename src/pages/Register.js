@@ -209,22 +209,22 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-8">
+        <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-gray-900 mb-6 sm:mb-8">
           Create your account
         </h2>
 
         {backendError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded relative mb-4 text-sm">
             {backendError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label className="form-label">Profile Image</label>
-            <div className="mt-1 flex items-center space-x-4">
+            <div className="mt-1 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
               {imagePreview ? (
                 <div className="relative">
                   <img
@@ -269,7 +269,7 @@ const Register = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="form-label">First Name</label>
               <input
@@ -378,7 +378,7 @@ const Register = () => {
 
           <div>
             <label className="form-label">Preferences</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {CATEGORIES.map((category) => (
                 <label key={category} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
                   <input
@@ -398,22 +398,19 @@ const Register = () => {
             )}
           </div>
 
-          <div>
+          <div className="flex flex-col sm:flex-row sm:justify-between items-center space-y-3 sm:space-y-0">
             <button
               type="submit"
-              className="w-full btn-primary"
+              className="w-full sm:w-auto btn-primary"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Registering...' : 'Register'}
             </button>
+            <Link to="/login" className="text-primary-600 hover:text-primary-700 text-sm">
+              Already have an account? Sign in
+            </Link>
           </div>
         </form>
-
-        <div className="text-center mt-4">
-          <Link to="/login" className="text-primary-600 hover:text-primary-700">
-            Already have an account? Sign in
-          </Link>
-        </div>
       </div>
 
       {toast && (

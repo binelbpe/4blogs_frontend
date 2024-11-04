@@ -74,7 +74,7 @@ const Header = () => {
 
   return (
     <div className="min-h-screen bg-background dark:bg-background-dark transition-colors duration-200">
-      <nav className={`bg-white dark:bg-gray-900 shadow-lg transition-colors duration-200`}>
+      <nav className="bg-white dark:bg-gray-900 shadow-lg transition-colors duration-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
             {/* Logo */}
@@ -165,92 +165,95 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - Update styles */}
           {isMobileMenuOpen && (
-            <div className="md:hidden py-4 space-y-2">
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={() => {
-                      navigate('/dashboard');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Dashboard
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/articles/create');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Create Article
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/articles/list');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    My Articles
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/profile');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleLogoutClick();
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      navigate('/login');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/register');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-primary-700 dark:text-primary-300 
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                  >
-                    Register
-                  </button>
-                </>
-              )}
+            <div className="md:hidden py-2 fixed inset-0 top-16 bg-white dark:bg-gray-900 z-50 overflow-y-auto">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {isAuthenticated ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/articles/create');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Create Article
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/articles/list');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      My Articles
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/profile');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogoutClick();
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/register');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
+                                 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md"
+                    >
+                      Register
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      {/* Adjust main content padding */}
+      <main className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
         <div className="container mx-auto">
           <div className="my-4">
             <Outlet />

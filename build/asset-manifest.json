@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "https://4blogs.fun/static/css/main.a89c9a07.css",
-    "main.js": "https://4blogs.fun/static/js/main.a107df20.js",
+    "main.css": "https://4blogs.fun/static/css/main.d41d7a7d.css",
+    "main.js": "https://4blogs.fun/static/js/main.db86fb9e.js",
     "index.html": "https://4blogs.fun/index.html",
-    "main.a89c9a07.css.map": "https://4blogs.fun/static/css/main.a89c9a07.css.map",
-    "main.a107df20.js.map": "https://4blogs.fun/static/js/main.a107df20.js.map"
+    "main.d41d7a7d.css.map": "https://4blogs.fun/static/css/main.d41d7a7d.css.map",
+    "main.db86fb9e.js.map": "https://4blogs.fun/static/js/main.db86fb9e.js.map"
   },
   "entrypoints": [
-    "static/css/main.a89c9a07.css",
-    "static/js/main.a107df20.js"
+    "static/css/main.d41d7a7d.css",
+    "static/js/main.db86fb9e.js"
   ]
 }
