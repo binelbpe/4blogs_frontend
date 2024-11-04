@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getArticleById, blockArticle } from "../api/userapi";
+import { getArticleById, blockArticle, likeArticle, dislikeArticle } from "../api/userapi";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Modal from "../components/Modal";
+import LikeDislike from '../components/LikeDislike';
 
 const ArticleDetail = () => {
   const { id } = useParams();
@@ -14,6 +15,12 @@ const ArticleDetail = () => {
   const [blockModal, setBlockModal] = useState({
     isOpen: false,
     action: null,
+  });
+  const [likeStats, setLikeStats] = useState({
+    likes: 0,
+    dislikes: 0,
+    isLiked: false,
+    isDisliked: false
   });
 
   const fetchArticle = useCallback(async () => {
@@ -26,6 +33,12 @@ const ArticleDetail = () => {
       }
 
       setArticle(data);
+      setLikeStats({
+        likes: data.likes.length,
+        dislikes: data.dislikes.length,
+        isLiked: user ? data.likes.includes(user._id) : false,
+        isDisliked: user ? data.dislikes.includes(user._id) : false
+      });
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -61,6 +74,32 @@ const ArticleDetail = () => {
 
   const handleBlockCancel = () => {
     setBlockModal({ isOpen: false, action: null });
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await likeArticle(article._id);
+      setLikeStats(response);
+    } catch (error) {
+      console.error('Error liking article:', error);
+    }
+  };
+
+  const handleDislike = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await dislikeArticle(article._id);
+      setLikeStats(response);
+    } catch (error) {
+      console.error('Error disliking article:', error);
+    }
   };
 
   if (loading) {
@@ -150,6 +189,17 @@ const ArticleDetail = () => {
           </div>
         </div>
       )}
+
+      <div className="mt-6 flex justify-between items-center">
+        <LikeDislike
+          likes={likeStats.likes}
+          dislikes={likeStats.dislikes}
+          isLiked={likeStats.isLiked}
+          isDisliked={likeStats.isDisliked}
+          onLike={handleLike}
+          onDislike={handleDislike}
+        />
+      </div>
 
       <Modal
         isOpen={blockModal.isOpen}

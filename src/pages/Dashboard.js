@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { getArticles } from "../api/userapi";
+import { Link, useNavigate } from "react-router-dom";
+import { getArticles, likeArticle, dislikeArticle } from "../api/userapi";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
+import ArticleCard from '../components/ArticleCard';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -14,13 +16,11 @@ const Dashboard = () => {
   const fetchArticles = useCallback(async () => {
     try {
       const data = await getArticles();
-      const filteredArticles = data.filter(
+      const availableArticles = data.filter(
         (article) =>
-          !article.deleted &&
-          !article.blocks.includes(user?._id) &&
-          user?.preferences?.includes(article.category)
+          !article.deleted && (user ? !article.blocks.includes(user._id) : true)
       );
-      setArticles(filteredArticles);
+      setArticles(availableArticles);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching articles:", error);
@@ -32,14 +32,60 @@ const Dashboard = () => {
     fetchArticles();
   }, [fetchArticles]);
 
-  const filteredArticles = articles.filter((article) => {
-    const matchesSearch =
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || article.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleLike = async (articleId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await likeArticle(articleId);
+      setArticles(articles.map(article => 
+        article._id === articleId 
+          ? { 
+              ...article, 
+              likes: response.isLiked ? [...(article.likes || []), user._id] : article.likes.filter(id => id !== user._id),
+              dislikes: response.isDisliked ? [...(article.dislikes || []), user._id] : article.dislikes.filter(id => id !== user._id)
+            }
+          : article
+      ));
+    } catch (error) {
+      console.error('Error liking article:', error);
+    }
+  };
+
+  const handleDislike = async (articleId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await dislikeArticle(articleId);
+      setArticles(articles.map(article => 
+        article._id === articleId 
+          ? { 
+              ...article, 
+              likes: response.isLiked ? [...(article.likes || []), user._id] : article.likes.filter(id => id !== user._id),
+              dislikes: response.isDisliked ? [...(article.dislikes || []), user._id] : article.dislikes.filter(id => id !== user._id)
+            }
+          : article
+      ));
+    } catch (error) {
+      console.error('Error disliking article:', error);
+    }
+  };
+
+  const filteredArticles = articles
+    .filter(
+      (article) =>
+        selectedCategory === "all" || article.category === selectedCategory
+    )
+    .filter(
+      (article) =>
+        (article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          article.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        !article.deleted &&
+        !article.blocks.includes(user?._id)
+    );
 
   if (loading) {
     return <LoadingSpinner />;
@@ -107,61 +153,16 @@ const Dashboard = () => {
       {filteredArticles.length > 0 ? (
         <div className="space-y-8">
           {filteredArticles.map((article) => (
-            <article
+            <ArticleCard
               key={article._id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden
-                         transform hover:scale-[1.02] hover:shadow-xl
-                         transition-all duration-300 ease-in-out"
-            >
-              <Link
-                to={`/articles/${article._id}`}
-                className="flex flex-col md:flex-row"
-              >
-                <div className="md:w-1/3 lg:w-1/4 overflow-hidden">
-                  <img
-                    src={`${process.env.PUBLIC_URL}${article.image}`}
-                    alt={article.title}
-                    className="w-full h-48 md:h-full object-cover transform hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-6 md:w-2/3 lg:w-3/4">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                    <span>
-                      {new Date(article.createdAt).toLocaleDateString()}
-                    </span>
-                    <span>•</span>
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
-                      {article.category}
-                    </span>
-                  </div>
-                  <h2
-                    className="text-2xl font-bold mb-3 card-title hover:text-primary-600 
-                                 dark:hover:text-primary-400 transition-colors"
-                  >
-                    {article.title}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                    {article.description}
-                  </p>
-                  <div className="flex items-center text-primary-600 dark:text-primary-400 font-medium">
-                    Read more
-                    <svg
-                      className="w-4 h-4 ml-1"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            </article>
+              article={{
+                ...article,
+                isLiked: user ? article.likes?.includes(user._id) : false,
+                isDisliked: user ? article.dislikes?.includes(user._id) : false
+              }}
+              onLike={handleLike}
+              onDislike={handleDislike}
+            />
           ))}
         </div>
       ) : (

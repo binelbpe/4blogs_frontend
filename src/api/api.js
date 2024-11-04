@@ -1,10 +1,8 @@
 import axios from "axios";
-import { checkTokenExpiration, handleAuthError } from "../utils/authHandler";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/user";
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: process.env.REACT_APP_API_URL || "https://4blogs.fun/user",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,13 +11,9 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    if (token && checkTokenExpiration(token)) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-      return Promise.reject("Token expired");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => {
@@ -30,8 +24,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (handleAuthError(error)) {
-      return Promise.reject(error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }

@@ -1,4 +1,5 @@
 import api from "./api";
+import axios from "axios";
 
 export const register = async (userData) => {
   try {
@@ -28,22 +29,20 @@ export const register = async (userData) => {
 export const login = async (credentials) => {
   try {
     console.log("Login attempt with:", credentials);
-    const response = await api.post("login", credentials);
-    console.log("Login response:", response.data);
-
+    const response = await api.post("/login", credentials, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
     if (response.data.success && response.data.data.token) {
       localStorage.setItem("token", response.data.data.token);
-
-      api.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.data.data.token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.data.token}`;
     }
     return response.data;
   } catch (error) {
-    console.error(
-      "Login error in service:",
-      error.response?.data || error.message
-    );
+    console.error("Login error in service:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -170,4 +169,26 @@ export const blockArticle = async (id) => {
 export const getDeletedArticles = async () => {
   const response = await api.get("/articles/deleted");
   return response.data;
+};
+
+export const likeArticle = async (articleId) => {
+  try {
+    const response = await axios.post(`/api/articles/${articleId}/like`, {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const dislikeArticle = async (articleId) => {
+  try {
+    const response = await axios.post(`/api/articles/${articleId}/dislike`, {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { getArticles } from "../api/userapi";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getArticles, likeArticle, dislikeArticle } from "../api/userapi";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
+import ArticleCard from '../components/ArticleCard';
 
 const Home = () => {
   const [articles, setArticles] = useState([]);
@@ -10,6 +11,7 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const CATEGORIES = [
     "all",
@@ -31,11 +33,7 @@ const Home = () => {
     "environment",
   ];
 
-  useEffect(() => {
-    fetchArticles();
-  }, []);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       const data = await getArticles();
       const availableArticles = data.filter(
@@ -48,6 +46,52 @@ const Home = () => {
       console.error("Error fetching articles:", error);
       setLoading(false);
     }
+  }, [user]);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
+
+  const handleLike = async (articleId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await likeArticle(articleId);
+      setArticles(articles.map(article => 
+        article._id === articleId 
+          ? { 
+              ...article, 
+              likes: response.isLiked ? [...(article.likes || []), user._id] : article.likes.filter(id => id !== user._id),
+              dislikes: response.isDisliked ? [...(article.dislikes || []), user._id] : article.dislikes.filter(id => id !== user._id)
+            }
+          : article
+      ));
+    } catch (error) {
+      console.error('Error liking article:', error);
+    }
+  };
+
+  const handleDislike = async (articleId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await dislikeArticle(articleId);
+      setArticles(articles.map(article => 
+        article._id === articleId 
+          ? { 
+              ...article, 
+              likes: response.isLiked ? [...(article.likes || []), user._id] : article.likes.filter(id => id !== user._id),
+              dislikes: response.isDisliked ? [...(article.dislikes || []), user._id] : article.dislikes.filter(id => id !== user._id)
+            }
+          : article
+      ));
+    } catch (error) {
+      console.error('Error disliking article:', error);
+    }
   };
 
   const filteredArticles = articles
@@ -58,9 +102,7 @@ const Home = () => {
     .filter(
       (article) =>
         (article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          article.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())) &&
+          article.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
         !article.deleted &&
         !article.blocks.includes(user?._id)
     );
@@ -121,75 +163,16 @@ const Home = () => {
 
       <div className="space-y-8">
         {filteredArticles.map((article) => (
-          <article
+          <ArticleCard
             key={article._id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-          >
-            <Link
-              to={`/articles/${article._id}`}
-              className="flex flex-col md:flex-row"
-            >
-              {article.image ? (
-                <div className="md:w-1/3 lg:w-1/4">
-                  <img
-                    src={`${process.env.PUBLIC_URL}${article.image}`}
-                    alt={article.title}
-                    className="w-full h-48 md:h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src =
-                        "https://via.placeholder.com/150?text=No+Image";
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="md:w-1/3 lg:w-1/4 bg-gray-100 h-48 md:h-full flex items-center justify-center">
-                  <span className="text-gray-400">No image</span>
-                </div>
-              )}
-              <div className="p-6 md:w-2/3 lg:w-3/4">
-                <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                  <span>
-                    {new Date(article.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    By {article.author.firstName} {article.author.lastName}
-                  </span>
-                  <span>•</span>
-                  <span className="px-2 py-1 bg-gray-100 rounded-full">
-                    {article.category}
-                  </span>
-                </div>
-                <h2 className="text-2xl font-bold mb-3 text-gray-900 hover:text-primary-600">
-                  {article.title}
-                </h2>
-                <p className="text-gray-600 mb-4 line-clamp-2">
-                  {article.description}
-                </p>
-                <div className="flex items-center text-primary-600 font-medium">
-                  Read more
-                  <svg
-                    className="w-4 h-4 ml-1"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-          </article>
+            article={{
+              ...article,
+              isLiked: user ? article.likes?.includes(user._id) : false,
+              isDisliked: user ? article.dislikes?.includes(user._id) : false
+            }}
+            onLike={handleLike}
+            onDislike={handleDislike}
+          />
         ))}
       </div>
 

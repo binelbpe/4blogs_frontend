@@ -4,7 +4,6 @@ import { updateProfile } from "../api/userapi";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { updateUser as updateUserAction } from "../store/slice/userSlice";
-import { handleImageValidation } from "../utils/imageValidation";
 
 const CATEGORIES = [
   "sports",

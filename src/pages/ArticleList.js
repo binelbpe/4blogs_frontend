@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, HandThumbUpIcon as ThumbsUp, HandThumbDownIcon as ThumbsDown } from '@heroicons/react/24/outline';
 import { getUserArticles, deleteArticle } from '../api/userapi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
@@ -86,6 +86,9 @@ const ArticleList = () => {
                   Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Engagement
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -124,6 +127,18 @@ const ArticleList = () => {
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                       {article.category}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <span className="flex items-center">
+                        <ThumbsUp size={14} className="mr-1" />
+                        {article.likes?.length || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <ThumbsDown size={14} className="mr-1" />
+                        {article.dislikes?.length || 0}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
                     <div className="flex space-x-3">
