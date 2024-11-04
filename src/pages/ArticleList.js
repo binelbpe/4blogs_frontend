@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
-import { getUserArticles, deleteArticle } from '../userapi';
+import { getUserArticles, deleteArticle } from '../api/userapi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';

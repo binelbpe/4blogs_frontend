@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getArticleByUserAndId, updateArticle, blockArticle } from '../userapi';
+import { getArticleByUserAndId, updateArticle, blockArticle } from '../api/userapi';
 import { useAuth } from '../context/AuthContext';
 import { X, Loader, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import Toast from '../components/Toast';
