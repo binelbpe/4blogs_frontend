@@ -162,11 +162,34 @@ const ArticleCreate = () => {
     }
   };
 
-  // Add this function to handle mobile image upload
-  const handleImageUpload = () => {
+  // Add touch event handlers for mobile
+  const handleImageUploadClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const input = document.getElementById('image');
     if (input) {
       input.click();
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const file = e.dataTransfer?.files[0];
+    if (file) {
+      await handleImageValidation(
+        file,
+        (error) => setErrors(prev => ({ ...prev, image: error })),
+        (image) => setFormData(prev => ({ ...prev, image })),
+        setImagePreview,
+        setToast
+      );
     }
   };
 
@@ -273,17 +296,21 @@ const ArticleCreate = () => {
 
           <div className="space-y-2">
             <label className="form-label">Article Image</label>
-            <div 
-              className="flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 border-2 border-gray-300 
-                         dark:border-gray-600 border-dashed rounded-lg hover:border-primary-500 
-                         dark:hover:border-primary-400 transition-colors duration-200"
-              onClick={handleImageUpload}
+            <div
+              className="relative flex justify-center px-3 sm:px-6 pt-4 pb-4 sm:pt-5 sm:pb-6 
+                         border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg 
+                         hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-200
+                         cursor-pointer"
+              onClick={handleImageUploadClick}
+              onTouchStart={handleImageUploadClick}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
               role="button"
               tabIndex={0}
             >
               <div className="space-y-1 text-center">
                 {imagePreview ? (
-                  <div className="relative">
+                  <div className="relative inline-block">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -291,23 +318,39 @@ const ArticleCreate = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setImagePreview(null);
                         setFormData(prev => ({ ...prev, image: null }));
                       }}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full
-                                hover:bg-red-600 transition-colors duration-200"
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full
+                                hover:bg-red-600 transition-colors duration-200
+                                touch-manipulation"
                     >
                       <X size={16} />
                     </button>
                   </div>
                 ) : (
                   <>
-                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg 
+                      className="mx-auto h-12 w-12 text-gray-400" 
+                      stroke="currentColor" 
+                      fill="none" 
+                      viewBox="0 0 48 48"
+                    >
+                      <path 
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                      />
                     </svg>
-                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                      <label htmlFor="image" className="relative cursor-pointer rounded-md font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500">
+                    <div className="flex flex-col sm:flex-row items-center justify-center text-sm text-gray-600 dark:text-gray-400">
+                      <label 
+                        htmlFor="image" 
+                        className="relative cursor-pointer rounded-md font-medium text-primary-600 
+                                 dark:text-primary-400 hover:text-primary-500"
+                      >
                         <span>Upload a file</span>
                         <input
                           id="image"
@@ -316,6 +359,7 @@ const ArticleCreate = () => {
                           className="sr-only"
                           onChange={handleImageChange}
                           accept="image/*"
+                          capture="environment"
                         />
                       </label>
                       <p className="pl-1">or drag and drop</p>

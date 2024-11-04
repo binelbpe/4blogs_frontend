@@ -4,12 +4,19 @@ import { register } from '../userapi';
 import { useAuth } from '../context/AuthContext';
 import { handleImageValidation } from '../utils/imageValidation';
 import Toast from '../components/Toast';
+import imageCompression from 'browser-image-compression';
 
 const CATEGORIES = [
   'sports', 'politics', 'space', 'technology', 'entertainment',
   'health', 'science', 'business', 'education', 'travel',
   'food', 'fashion', 'art', 'music', 'gaming', 'environment'
 ];
+
+const compressionOptions = {
+  maxSizeMB: 1,      // Maximum size in MB
+  maxWidthOrHeight: 1024,  // Maximum width/height
+  useWebWorker: true
+};
 
 const Register = () => {
   const navigate = useNavigate();
@@ -122,17 +129,45 @@ const Register = () => {
   const handleImageChange = async (event) => {
     const file = event.currentTarget.files[0];
     if (file) {
-      const isValid = await handleImageValidation(
-        file,
-        (error) => setFormErrors(prev => ({ ...prev, image: error })),
-        (image) => setFormData(prev => ({ ...prev, image })),
-        setImagePreview,
-        setToast
-      );
+      try {
+        // Check file size before compression
+        if (file.size > 5 * 1024 * 1024) {
+          setFormErrors(prev => ({
+            ...prev,
+            image: 'Image size must be less than 5MB'
+          }));
+          return;
+        }
 
-      if (!isValid) {
-        setFormData(prev => ({ ...prev, image: null }));
-        setImagePreview(null);
+        // Compress image
+        let compressedFile = file;
+        if (file.size > 1024 * 1024) { // If larger than 1MB, compress
+          try {
+            compressedFile = await imageCompression(file, compressionOptions);
+          } catch (error) {
+            console.error('Image compression failed:', error);
+            // Continue with original file if compression fails
+          }
+        }
+
+        const isValid = await handleImageValidation(
+          compressedFile,
+          (error) => setFormErrors(prev => ({ ...prev, image: error })),
+          (image) => setFormData(prev => ({ ...prev, image })),
+          setImagePreview,
+          setToast
+        );
+
+        if (!isValid) {
+          setFormData(prev => ({ ...prev, image: null }));
+          setImagePreview(null);
+        }
+      } catch (error) {
+        console.error('Image processing error:', error);
+        setFormErrors(prev => ({
+          ...prev,
+          image: 'Failed to process image. Please try another one.'
+        }));
       }
     }
   };
@@ -163,7 +198,6 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent any bubbling
     setBackendError('');
     const errors = validateForm();
 
@@ -172,18 +206,21 @@ const Register = () => {
       try {
         const formDataToSend = new FormData();
         
-        // Ensure all form data is properly appended
+        // Handle image separately
+        if (formData.image) {
+          // Additional size check before submission
+          if (formData.image.size > 5 * 1024 * 1024) {
+            throw new Error('Image size must be less than 5MB');
+          }
+          formDataToSend.append('image', formData.image);
+        }
+
+        // Append other form data
         Object.keys(formData).forEach(key => {
           if (key === 'preferences') {
-            // Ensure preferences is always an array
-            const prefsArray = Array.isArray(formData[key]) ? formData[key] : [];
-            formDataToSend.append(key, JSON.stringify(prefsArray));
-          } else if (key === 'image' && formData[key]) {
-            // Only append image if it exists
+            formDataToSend.append(key, JSON.stringify(formData[key]));
+          } else if (key !== 'image' && key !== 'confirmPassword') {
             formDataToSend.append(key, formData[key]);
-          } else if (key !== 'confirmPassword') {
-            // Ensure value is converted to string
-            formDataToSend.append(key, String(formData[key] || ''));
           }
         });
 
@@ -197,22 +234,22 @@ const Register = () => {
         }
       } catch (error) {
         console.error('Registration error:', error);
-        setBackendError(
-          error.response?.data?.message || 
-          error.message || 
-          'Registration failed. Please try again.'
-        );
+        let errorMessage = 'Registration failed. Please try again.';
+        
+        if (error.response) {
+          if (error.response.status === 413) {
+            errorMessage = 'Image size is too large. Please use a smaller image (max 5MB).';
+          } else {
+            errorMessage = error.response.data?.message || error.response.data || errorMessage;
+          }
+        }
+        
+        setBackendError(errorMessage);
       } finally {
         setIsSubmitting(false);
       }
     } else {
       setFormErrors(errors);
-      // Scroll to the first error
-      const firstError = Object.keys(errors)[0];
-      const errorElement = document.getElementById(firstError);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
     }
   };
 
