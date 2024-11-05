@@ -1,11 +1,23 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import LikeDislike from './LikeDislike';
 
 const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e) => {
+    // Don't navigate if clicking on like/dislike buttons
+    if (!e.target.closest('.like-dislike-buttons')) {
+      navigate(`/articles/${article._id}`);
+    }
+  };
+
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <Link to={`/articles/${article._id}`} className="flex flex-col md:flex-row">
+    <article 
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="flex flex-col md:flex-row">
         <div className="md:w-1/3 lg:w-1/4">
           {article.image ? (
             <img
@@ -35,15 +47,17 @@ const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
               </span>
             </div>
             {showLikes && (
-              <LikeDislike
-                likes={article.likes?.length || 0}
-                dislikes={article.dislikes?.length || 0}
-                isLiked={article.isLiked}
-                isDisliked={article.isDisliked}
-                onLike={() => onLike(article._id)}
-                onDislike={() => onDislike(article._id)}
-                size="small"
-              />
+              <div className="like-dislike-buttons" onClick={e => e.stopPropagation()}>
+                <LikeDislike
+                  likes={article.likes?.length || 0}
+                  dislikes={article.dislikes?.length || 0}
+                  isLiked={article.isLiked}
+                  isDisliked={article.isDisliked}
+                  onLike={() => onLike(article._id)}
+                  onDislike={() => onDislike(article._id)}
+                  size="small"
+                />
+              </div>
             )}
           </div>
           <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white hover:text-primary-600">
@@ -59,7 +73,7 @@ const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
             </svg>
           </div>
         </div>
-      </Link>
+      </div>
     </article>
   );
 };

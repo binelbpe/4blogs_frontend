@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { getUserArticles, deleteArticle } from '../api/userapi';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -17,6 +17,7 @@ const ArticleList = () => {
   });
   const [toast, setToast] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUserArticles();
@@ -98,8 +99,11 @@ const ArticleList = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {articles.map((article) => (
-                <tr key={article._id}>
-                  <td className="px-6 py-4">
+                <tr key={article._id} className="hover:bg-gray-50 cursor-pointer">
+                  <td 
+                    className="px-6 py-4"
+                    onClick={() => navigate(`/articles/${article._id}`)}
+                  >
                     <div className="flex items-center">
                       {article.image ? (
                         <img

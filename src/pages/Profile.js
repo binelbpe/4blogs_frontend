@@ -132,7 +132,8 @@ const Profile = () => {
           {paginatedArticles.map((article) => (
             <div
               key={article._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => navigate(`/articles/${article._id}`)}
             >
               {article.image ? (
                 <img
