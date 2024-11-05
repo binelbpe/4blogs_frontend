@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrashIcon, PencilIcon, HandThumbUpIcon as ThumbsUp, HandThumbDownIcon as ThumbsDown } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { getUserArticles, deleteArticle } from '../api/userapi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
+import LikeDislike from '../components/LikeDislike';
+import { useAuth } from '../context/AuthContext';
 
 const ArticleList = () => {
   const [articles, setArticles] = useState([]);
@@ -14,6 +16,7 @@ const ArticleList = () => {
     articleId: null
   });
   const [toast, setToast] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchUserArticles();
@@ -128,17 +131,16 @@ const ArticleList = () => {
                       {article.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <span className="flex items-center">
-                        <ThumbsUp size={14} className="mr-1" />
-                        {article.likes?.length || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <ThumbsDown size={14} className="mr-1" />
-                        {article.dislikes?.length || 0}
-                      </span>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <LikeDislike
+                      likes={article.likes?.length || 0}
+                      dislikes={article.dislikes?.length || 0}
+                      isLiked={article.likes?.includes(user?._id)}
+                      isDisliked={article.dislikes?.includes(user?._id)}
+                      size="small"
+                      onLike={() => {}} // Read-only in list view
+                      onDislike={() => {}} // Read-only in list view
+                    />
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
                     <div className="flex space-x-3">
