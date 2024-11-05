@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/userapi';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,29 @@ const Login = () => {
     identifier: '',
     password: ''
   });
+
+  useEffect(
+    () => {
+      const handleContextMenu=(e)=>{
+        e.preventDefault();
+      }
+      document.addEventListener('contextmenu',handleContextMenu)
+      return ()=>{
+        document.addEventListener('contextmenu',handleContextMenu) 
+      }
+    },
+    [],
+  )
+const copyPaste=(event)=>{
+  event.preventDefault()
+}
+
+  useEffect(()=>{
+const textsel=(event)=>{
+  event.preventDefault()
+}
+document.addEventListener("selectstart",textsel)
+  },[])
   
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,6 +162,9 @@ const Login = () => {
                 value={formData.identifier}
                 onChange={handleChange}
                 placeholder="Enter email or phone number"
+                onCopy={copyPaste}
+                onCut={copyPaste}
+                onPaste={copyPaste}
               />
               {formErrors.identifier && (
                 <div className="text-red-500 text-sm mt-1">{formErrors.identifier}</div>

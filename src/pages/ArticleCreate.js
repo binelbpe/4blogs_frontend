@@ -38,6 +38,7 @@ const ArticleCreate = () => {
   const [submitError, setSubmitError] = useState("");
   const [toast, setToast] = useState(null);
 
+
   const validateForm = () => {
     const newErrors = {};
 

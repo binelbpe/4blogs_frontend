@@ -23,6 +23,8 @@ const ArticleDetail = () => {
     isDisliked: false
   });
 
+
+  
   const fetchArticle = useCallback(async () => {
     try {
       const data = await getArticleById(id);
