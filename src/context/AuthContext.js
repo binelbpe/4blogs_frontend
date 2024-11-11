@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProfile } from "../api/userapi";
 import { setCredentials, selectCurrentUser } from "../store/slice/userSlice";
@@ -14,55 +14,55 @@ export const AuthProvider = ({ children }) => {
   const user = useSelector(selectCurrentUser);
   const navigate = useNavigate();
 
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    api.defaults.headers.common["Authorization"] = null;
+    dispatch({ type: "auth/logout" });
+    navigate("/login", { replace: true });
+    sessionStorage.clear();
+  }, [dispatch, navigate]);
+
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (token && !checkTokenExpiration(token)) {
+      const accessToken = localStorage.getItem("accessToken");
+      
+      if (accessToken && !checkTokenExpiration(accessToken)) {
         try {
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
           const userData = await getProfile();
+          
           dispatch(
             setCredentials({
-              user: { ...userData, _id: userData._id || userData.id },
-              token,
+              user: userData,
+              token: accessToken,
             })
           );
         } catch (error) {
           console.error("Auth initialization error:", error);
           handleLogout();
         }
-      } else if (token) {
+      } else if (accessToken) {
         handleLogout();
       }
       setLoading(false);
     };
 
     initializeAuth();
-  }, [dispatch]);
+  }, [dispatch, handleLogout]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    api.defaults.headers.common["Authorization"] = null;
-    dispatch({ type: "auth/logout" });
-    navigate("/login", { replace: true });
-
-    // Clear any cached data or state
-    sessionStorage.clear();
-    // If you're using query cache (like react-query), clear it here
-  };
-
-  const login = (userData) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  const login = useCallback((userData) => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      dispatch(
+        setCredentials({
+          user: userData,
+          token: accessToken,
+        })
+      );
     }
-    dispatch(
-      setCredentials({
-        user: { ...userData, _id: userData._id || userData.id },
-        token,
-      })
-    );
-  };
+  }, [dispatch]);
 
   if (loading) {
     return <div>Loading...</div>;

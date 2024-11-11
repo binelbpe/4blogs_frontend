@@ -3,25 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { createArticle } from "../api/userapi";
 import Toast from "../components/Toast";
-
-const CATEGORIES = [
-  "sports",
-  "politics",
-  "space",
-  "technology",
-  "entertainment",
-  "health",
-  "science",
-  "business",
-  "education",
-  "travel",
-  "food",
-  "fashion",
-  "art",
-  "music",
-  "gaming",
-  "environment",
-];
+import { CATEGORIES } from '../constants/categories';
+import { VALIDATION_RULES, ERROR_MESSAGES } from '../constants/validation';
+import { API_ENDPOINTS } from '../constants/api';
 
 const ArticleCreate = () => {
   const navigate = useNavigate();

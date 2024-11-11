@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, Outlet } from 'react-router-dom';
-import { Sun, Moon, Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, Outlet } from "react-router-dom";
+import { Sun, Moon, Menu, X } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -15,16 +16,10 @@ const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
           Are you sure you want to logout?
         </p>
         <div className="flex justify-end space-x-4">
-          <button
-            onClick={onClose}
-            className="btn-secondary"
-          >
+          <button onClick={onClose} className="btn-secondary">
             Cancel
           </button>
-          <button
-            onClick={onConfirm}
-            className="btn-primary"
-          >
+          <button onClick={onConfirm} className="btn-primary">
             Logout
           </button>
         </div>
@@ -35,29 +30,33 @@ const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
 
 const Header = () => {
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('token');
+  const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // Initialize theme from localStorage or system preference
+  const isAuthenticated = !!user;
+
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem("theme") || 'light';
     
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      document.documentElement.classList.add('dark');
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
       setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+      localStorage.setItem("theme", "light");
     }
   }, []);
 
   const toggleTheme = () => {
     if (isDark) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     }
     setIsDark(!isDark);
   };
@@ -67,9 +66,9 @@ const Header = () => {
   };
 
   const handleLogoutConfirm = () => {
-    localStorage.removeItem('token');
+    logout();
     setShowLogoutModal(false);
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -79,14 +78,14 @@ const Header = () => {
           <div className="flex justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/" className="text-primary font-bold text-xl tracking-wide">
+              <Link
+                to="/"
+                className="text-primary font-bold text-xl tracking-wide"
+              >
                 4BLOGS
               </Link>
             </div>
-
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -94,51 +93,46 @@ const Header = () => {
               >
                 {isDark ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-
-              {/* Navigation Links */}
               {isAuthenticated ? (
                 <>
                   <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate("/dashboard")}
                     className="nav-link"
                   >
                     Dashboard
                   </button>
                   <button
-                    onClick={() => navigate('/articles/create')}
+                    onClick={() => navigate("/articles/create")}
                     className="nav-link"
                   >
                     Create Article
                   </button>
                   <button
-                    onClick={() => navigate('/articles/list')}
+                    onClick={() => navigate("/articles/list")}
                     className="nav-link"
                   >
                     My Articles
                   </button>
                   <button
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate("/profile")}
                     className="nav-link"
                   >
                     Profile
                   </button>
-                  <button
-                    onClick={handleLogoutClick}
-                    className="nav-link"
-                  >
+                  <button onClick={handleLogoutClick} className="nav-link">
                     Logout
                   </button>
                 </>
               ) : (
                 <>
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate("/login")}
                     className="nav-link"
                   >
                     Login
                   </button>
                   <button
-                    onClick={() => navigate('/register')}
+                    onClick={() => navigate("/register")}
                     className="nav-link"
                   >
                     Register
@@ -146,8 +140,6 @@ const Header = () => {
                 </>
               )}
             </div>
-
-            {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
               <button
                 onClick={toggleTheme}
@@ -164,8 +156,6 @@ const Header = () => {
               </button>
             </div>
           </div>
-
-          {/* Mobile Menu - Update styles */}
           {isMobileMenuOpen && (
             <div className="md:hidden py-2 fixed inset-0 top-16 bg-white dark:bg-gray-900 z-50 overflow-y-auto">
               <div className="px-2 pt-2 pb-3 space-y-1">
@@ -173,7 +163,7 @@ const Header = () => {
                   <>
                     <button
                       onClick={() => {
-                        navigate('/dashboard');
+                        navigate("/dashboard");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -183,7 +173,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/articles/create');
+                        navigate("/articles/create");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -193,7 +183,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/articles/list');
+                        navigate("/articles/list");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -203,7 +193,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/profile');
+                        navigate("/profile");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -226,7 +216,7 @@ const Header = () => {
                   <>
                     <button
                       onClick={() => {
-                        navigate('/login');
+                        navigate("/login");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -236,7 +226,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/register');
+                        navigate("/register");
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -251,8 +241,6 @@ const Header = () => {
           )}
         </div>
       </nav>
-
-      {/* Adjust main content padding */}
       <main className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
         <div className="container mx-auto">
           <div className="my-4">

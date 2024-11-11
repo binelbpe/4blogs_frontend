@@ -4,6 +4,7 @@ import { getArticles, likeArticle, dislikeArticle } from "../api/userapi";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
 import ArticleCard from '../components/ArticleCard';
+import { CATEGORIES } from '../constants/categories';
 
 const Home = () => {
   const [articles, setArticles] = useState([]);
@@ -12,26 +13,6 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  const CATEGORIES = [
-    "all",
-    "sports",
-    "politics",
-    "space",
-    "technology",
-    "entertainment",
-    "health",
-    "science",
-    "business",
-    "education",
-    "travel",
-    "food",
-    "fashion",
-    "art",
-    "music",
-    "gaming",
-    "environment",
-  ];
 
   const fetchArticles = useCallback(async () => {
     try {

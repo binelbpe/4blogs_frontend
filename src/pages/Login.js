@@ -1,43 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api/userapi';
-import { useAuth } from '../context/AuthContext';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../store/slice/userSlice';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { login } from "../api/userapi";
+import { useAuth } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../store/slice/userSlice";
+import api from "../api/api";
+import { VALIDATION_RULES, ERROR_MESSAGES } from '../constants/validation';
+import { API_ENDPOINTS } from '../constants/api';
+import { ROUTES } from '../constants/routes';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
   const dispatch = useDispatch();
-  
+
   const [formData, setFormData] = useState({
-    identifier: '',
-    password: ''
+    identifier: "",
+    password: "",
   });
 
-  useEffect(
-    () => {
-      const handleContextMenu=(e)=>{
-        e.preventDefault();
-      }
-      document.addEventListener('contextmenu',handleContextMenu)
-      return ()=>{
-        document.addEventListener('contextmenu',handleContextMenu) 
-      }
-    },
-    [],
-  )
-const copyPaste=(event)=>{
-  event.preventDefault()
-}
-
-  useEffect(()=>{
-const textsel=(event)=>{
-  event.preventDefault()
-}
-document.addEventListener("selectstart",textsel)
-  },[])
-  
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [backendError, setBackendError] = useState(null);
@@ -46,23 +27,19 @@ document.addEventListener("selectstart",textsel)
     const errors = {};
     const { identifier, password } = formData;
 
-
-    const isEmail = identifier.includes('@');
+    const isEmail = identifier.includes("@");
     if (isEmail) {
-      if (!/^[a-zA-Z0-9._-]+@[a-z]+\.[a-z]{2,}$/.test(identifier)) {
-        errors.identifier = 'Please enter a valid email address.';
+      if (!VALIDATION_RULES.EMAIL.test(identifier)) {
+        errors.identifier = ERROR_MESSAGES.INVALID_EMAIL;
       }
     } else {
-   
-      if (!/^\d{10}$/.test(identifier.replace(/[-()\s]/g, ''))) {
-        errors.identifier = 'Please enter a valid 10-digit phone number.';
+      if (!VALIDATION_RULES.PHONE.test(identifier.replace(/[-()\s]/g, ""))) {
+        errors.identifier = ERROR_MESSAGES.INVALID_PHONE;
       }
     }
 
-    
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
-      errors.password =
-        'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
+    if (!VALIDATION_RULES.PASSWORD.test(password)) {
+      errors.password = ERROR_MESSAGES.INVALID_PASSWORD;
     }
 
     return errors;
@@ -70,18 +47,18 @@ document.addEventListener("selectstart",textsel)
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-   
+
     if (formErrors[name]) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
-  
+
     if (backendError) {
       setBackendError(null);
     }
@@ -89,34 +66,38 @@ document.addEventListener("selectstart",textsel)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   
     setBackendError(null);
     const errors = validateForm();
-    
+
     if (Object.keys(errors).length === 0) {
       setIsSubmitting(true);
       try {
         const response = await login(formData);
-        console.log("res login",response)
+
         if (response.success && response.data) {
-          const { token, user } = response.data;
-          dispatch(setCredentials({ user, token }));
+          const { accessToken, refreshToken, user } = response.data;
+
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
+          api.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${accessToken}`;
+
+          dispatch(setCredentials({ user, token: accessToken }));
           authLogin(user);
-          navigate('/', { replace: true });
+
+          navigate("/", { replace: true });
         } else {
-      
-          throw new Error(response.message || 'Login failed');
+          throw new Error(response.message || "Login failed");
         }
       } catch (error) {
-        console.error('Login error:', error);
-      
-        if (error.response) {
-              setBackendError(error.response.data?.message ||error.response.data ||error.response|| 'An unexpected error occurred. Please try again.');
-        } else if (error.request) {
-          setBackendError('Unable to connect to the server. Please check your internet connection.');
-        } else {
-          setBackendError('An unexpected error occurred. Please try again.');
-        }
+        console.error("Login error:", error);
+        setBackendError(
+          error.response?.data?.message ||
+            error.message ||
+            "An unexpected error occurred. Please try again."
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -124,18 +105,6 @@ document.addEventListener("selectstart",textsel)
       setFormErrors(errors);
     }
   };
-
-  const ErrorAlert = ({ message }) => (
-    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-      <div className="flex">
-        <div className="ml-3">
-          <p className="text-sm text-red-700">
-            {message}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -145,10 +114,18 @@ document.addEventListener("selectstart",textsel)
             Sign in to your account
           </h2>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {backendError && <ErrorAlert message={backendError} />}
-          
+          {backendError && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{backendError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="identifier" className="form-label">
@@ -158,16 +135,19 @@ document.addEventListener("selectstart",textsel)
                 id="identifier"
                 name="identifier"
                 type="text"
-                className={`input-field ${formErrors.identifier || backendError ? 'border-red-500' : 'border-gray-300'}`}
+                className={`input-field ${
+                  formErrors.identifier || backendError
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
                 value={formData.identifier}
                 onChange={handleChange}
                 placeholder="Enter email or phone number"
-                onCopy={copyPaste}
-                onCut={copyPaste}
-                onPaste={copyPaste}
               />
               {formErrors.identifier && (
-                <div className="text-red-500 text-sm mt-1">{formErrors.identifier}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {formErrors.identifier}
+                </div>
               )}
             </div>
 
@@ -179,18 +159,27 @@ document.addEventListener("selectstart",textsel)
                 id="password"
                 name="password"
                 type="password"
-                className={`input-field ${formErrors.password || backendError ? 'border-red-500' : 'border-gray-300'}`}
+                className={`input-field ${
+                  formErrors.password || backendError
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
                 value={formData.password}
                 onChange={handleChange}
               />
               {formErrors.password && (
-                <div className="text-red-500 text-sm mt-1">{formErrors.password}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {formErrors.password}
+                </div>
               )}
             </div>
           </div>
 
           <div className="flex items-center justify-end">
-            <Link to="/forgot-password" className="text-sm text-primary-600 hover:text-primary-500">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-primary-600 hover:text-primary-500"
+            >
               Forgot your password?
             </Link>
           </div>
@@ -201,13 +190,16 @@ document.addEventListener("selectstart",textsel)
               className="btn-primary w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
 
         <div className="text-center">
-          <Link to="/register" className="text-primary-600 hover:text-primary-700">
+          <Link
+            to="/register"
+            className="text-primary-600 hover:text-primary-700"
+          >
             Don't have an account? Sign up
           </Link>
         </div>

@@ -12,11 +12,7 @@ const userSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { user, token } = action.payload;
-      state.user = {
-        ...user,
-        _id: user.id || user._id,
-        id: user.id || user._id
-      };
+      state.user = user;
       state.token = token;
       state.isAuthenticated = true;
     },
@@ -24,7 +20,8 @@ const userSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
     updateUser: (state, action) => {
       state.user = {
