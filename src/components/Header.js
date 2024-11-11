@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, Outlet } from "react-router-dom";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { ROUTES } from '../constants/routes';
 
 const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -79,7 +80,7 @@ const Header = () => {
             {/* Logo */}
             <div className="flex items-center">
               <Link
-                to="/"
+                to={ROUTES.HOME}
                 className="text-primary font-bold text-xl tracking-wide"
               >
                 4BLOGS
@@ -96,25 +97,25 @@ const Header = () => {
               {isAuthenticated ? (
                 <>
                   <button
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate(ROUTES.DASHBOARD)}
                     className="nav-link"
                   >
                     Dashboard
                   </button>
                   <button
-                    onClick={() => navigate("/articles/create")}
+                    onClick={() => navigate(ROUTES.ARTICLES.CREATE)}
                     className="nav-link"
                   >
                     Create Article
                   </button>
                   <button
-                    onClick={() => navigate("/articles/list")}
+                    onClick={() => navigate(ROUTES.ARTICLES.LIST)}
                     className="nav-link"
                   >
                     My Articles
                   </button>
                   <button
-                    onClick={() => navigate("/profile")}
+                    onClick={() => navigate(ROUTES.PROFILE)}
                     className="nav-link"
                   >
                     Profile
@@ -126,13 +127,13 @@ const Header = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate(ROUTES.LOGIN)}
                     className="nav-link"
                   >
                     Login
                   </button>
                   <button
-                    onClick={() => navigate("/register")}
+                    onClick={() => navigate(ROUTES.REGISTER)}
                     className="nav-link"
                   >
                     Register
@@ -163,7 +164,7 @@ const Header = () => {
                   <>
                     <button
                       onClick={() => {
-                        navigate("/dashboard");
+                        navigate(ROUTES.DASHBOARD);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -173,7 +174,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate("/articles/create");
+                        navigate(ROUTES.ARTICLES.CREATE);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -183,7 +184,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate("/articles/list");
+                        navigate(ROUTES.ARTICLES.LIST);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -193,7 +194,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate("/profile");
+                        navigate(ROUTES.PROFILE);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -216,7 +217,7 @@ const Header = () => {
                   <>
                     <button
                       onClick={() => {
-                        navigate("/login");
+                        navigate(ROUTES.LOGIN);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 
@@ -226,7 +227,7 @@ const Header = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate("/register");
+                        navigate(ROUTES.REGISTER);
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 

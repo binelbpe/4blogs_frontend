@@ -6,7 +6,6 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../store/slice/userSlice";
 import api from "../api/api";
 import { VALIDATION_RULES, ERROR_MESSAGES } from '../constants/validation';
-import { API_ENDPOINTS } from '../constants/api';
 import { ROUTES } from '../constants/routes';
 
 const Login = () => {
@@ -87,7 +86,7 @@ const Login = () => {
           dispatch(setCredentials({ user, token: accessToken }));
           authLogin(user);
 
-          navigate("/", { replace: true });
+          navigate(ROUTES.HOME, { replace: true });
         } else {
           throw new Error(response.message || "Login failed");
         }

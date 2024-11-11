@@ -1,32 +1,58 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserArticles } from "../api/userapi";
 import LoadingSpinner from "../components/LoadingSpinner";
-import Pagination from "../components/Pagination";
+import useInfiniteScroll from '../hooks/useInfiniteScroll';
 import { useAuth } from "../context/AuthContext";
-
-const ITEMS_PER_PAGE = 6;
+import { PAGINATION } from '../constants/pagination';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [stats, setStats] = useState({
     totalArticles: 0,
     totalViews: 0,
   });
 
+  const fetchArticles = useCallback(async () => {
+    try {
+      const response = await getUserArticles({ 
+        page, 
+        limit: PAGINATION.DEFAULT_LIMIT 
+      });
+      if (response.success && response.data) {
+        if (page === 1) {
+          setArticles(response.data.articles);
+        } else {
+          setArticles(prev => [...prev, ...response.data.articles]);
+        }
+        setHasMore(response.data.hasMore);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching user articles:", error);
+      setLoading(false);
+    }
+  }, [page]);
+
+  const loadMore = useCallback(() => {
+    setPage(prev => prev + 1);
+  }, []);
+
+  const [isFetching] = useInfiniteScroll(loadMore, hasMore);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const articlesData = await getUserArticles();
-        setArticles(articlesData);
+        await fetchArticles();
         setStats({
-          totalArticles: articlesData.length,
-          totalViews: articlesData.length * 100,
+          totalArticles: articles.length,
+          totalViews: articles.length * 100,
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -36,7 +62,7 @@ const Profile = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [fetchArticles, articles.length]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -49,13 +75,6 @@ const Profile = () => {
       </div>
     );
   }
-
-  const totalPages = Math.ceil(articles.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedArticles = articles.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -129,7 +148,7 @@ const Profile = () => {
           Articles by {user.firstName}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {paginatedArticles.map((article) => (
+          {articles.map((article) => (
             <div
               key={article._id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer"
@@ -166,12 +185,11 @@ const Profile = () => {
           ))}
         </div>
 
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+        {isFetching && <LoadingSpinner />}
+        {!hasMore && articles.length > 0 && (
+          <p className="text-center text-gray-500 mt-8">
+            No more articles to load
+          </p>
         )}
       </div>
     </div>

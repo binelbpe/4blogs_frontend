@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeDislike from './LikeDislike';
+import { COLORS, CARD_STYLES } from '../constants/colors';
 
 const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
 
   return (
     <article 
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      className={`${CARD_STYLES.base} cursor-pointer`}
       onClick={handleCardClick}
     >
       <div className="flex flex-col md:flex-row">
@@ -37,7 +38,7 @@ const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
         </div>
         <div className="p-6 md:w-2/3 lg:w-3/4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <div className={`flex items-center space-x-4 text-sm ${COLORS.text.secondary}`}>
               <span>{new Date(article.createdAt).toLocaleDateString()}</span>
               <span>•</span>
               <span>By {article.author.firstName} {article.author.lastName}</span>
@@ -60,7 +61,7 @@ const ArticleCard = ({ article, onLike, onDislike, showLikes = true }) => {
               </div>
             )}
           </div>
-          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white hover:text-primary-600">
+          <h2 className={`text-2xl font-bold mb-3 ${COLORS.text.primary}`}>
             {article.title}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">

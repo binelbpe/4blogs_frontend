@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { COLORS } from '../constants/colors';
 
 const LikeDislike = ({ 
   likes, 
@@ -20,7 +21,7 @@ const LikeDislike = ({
         onClick={onLike}
         className={`${buttonClass} flex items-center space-x-2 rounded-full
           ${isLiked 
-            ? 'bg-primary-100 text-primary-600' 
+            ? `${COLORS.primary[100]} ${COLORS.text.primary}` 
             : 'hover:bg-gray-100 text-gray-600'
           } transition-colors duration-200`}
         title="Like this article"

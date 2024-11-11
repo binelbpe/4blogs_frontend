@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Modal from "../components/Modal";
 import LikeDislike from '../components/LikeDislike';
+import { API_ENDPOINTS } from '../constants/api';
+import { ERROR_MESSAGES } from '../constants/validation';
 
 const ArticleDetail = () => {
   const { id } = useParams();
@@ -111,7 +113,7 @@ const ArticleDetail = () => {
   if (!article) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Article not found.</p>
+        <p className="text-gray-500">{ERROR_MESSAGES.ARTICLE.NOT_FOUND}</p>
       </div>
     );
   }
@@ -121,7 +123,7 @@ const ArticleDetail = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+      <div className="card">
         {article.image ? (
           <img
             src={`${process.env.PUBLIC_URL}${article.image}`}
@@ -135,20 +137,20 @@ const ArticleDetail = () => {
         )}
 
         <div className="p-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+          <h1 className="heading-primary mb-4">
             {article.title}
           </h1>
 
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-subtle">
                 By {article.author.firstName} {article.author.lastName}
               </span>
-              <span className="text-gray-500 dark:text-gray-400">
+              <span className="text-subtle">
                 {new Date(article.createdAt).toLocaleDateString()}
               </span>
             </div>
-            <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/20 text-primary-800 dark:text-primary-400 rounded-full">
+            <span className="tag">
               {article.category}
             </span>
           </div>

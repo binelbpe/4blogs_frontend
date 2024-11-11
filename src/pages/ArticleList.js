@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { getUserArticles, deleteArticle } from '../api/userapi';
@@ -7,6 +7,9 @@ import Modal from '../components/Modal';
 import Toast from '../components/Toast';
 import LikeDislike from '../components/LikeDislike';
 import { useAuth } from '../context/AuthContext';
+import { ROUTES } from '../constants/routes';
+import { API_ENDPOINTS } from '../constants/api';
+import useInfiniteScroll from '../hooks/useInfiniteScroll';
 
 const ArticleList = () => {
   const [articles, setArticles] = useState([]);
@@ -18,21 +21,40 @@ const ArticleList = () => {
   const [toast, setToast] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    fetchUserArticles();
-  }, []);
-
-  const fetchUserArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
-      const data = await getUserArticles();
-      setArticles(data);
+      const response = await getUserArticles({ 
+        page, 
+        limit: 10,
+        endpoint: API_ENDPOINTS.ARTICLES.USER_ARTICLES 
+      });
+      if (response.success && response.data) {
+        if (page === 1) {
+          setArticles(response.data.articles);
+        } else {
+          setArticles(prev => [...prev, ...response.data.articles]);
+        }
+        setHasMore(response.data.hasMore);
+      }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching articles:', error);
+      console.error("Error fetching articles:", error);
       setLoading(false);
     }
-  };
+  }, [page]);
+
+  const loadMore = useCallback(() => {
+    setPage(prev => prev + 1);
+  }, []);
+
+  const [isFetching] = useInfiniteScroll(loadMore, hasMore);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
 
   const handleDeleteClick = (articleId) => {
     setDeleteModal({
@@ -48,7 +70,7 @@ const ArticleList = () => {
         message: 'Article deleted successfully',
         type: 'success'
       });
-      fetchUserArticles(); 
+      fetchArticles(); 
       setDeleteModal({ isOpen: false, articleId: null });
     } catch (error) {
       setToast({
@@ -71,10 +93,10 @@ const ArticleList = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Articles</h1>
-          <p className="text-gray-600 mt-2">Manage your published articles</p>
+          <h1 className="heading-primary">My Articles</h1>
+          <p className="text-subtle mt-2">Manage your published articles</p>
         </div>
-        <Link to="/articles/create" className="btn-primary">
+        <Link to={ROUTES.ARTICLES.CREATE} className="btn-primary">
           Create New Article
         </Link>
       </div>
@@ -170,7 +192,7 @@ const ArticleList = () => {
       ) : (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <p className="text-gray-500 mb-4">You haven't created any articles yet.</p>
-          <Link to="/articles/create" className="btn-primary">
+          <Link to={ROUTES.ARTICLES.CREATE} className="btn-primary">
             Create Your First Article
           </Link>
         </div>
@@ -188,6 +210,12 @@ const ArticleList = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {isFetching && <LoadingSpinner />}
+      {!hasMore && articles.length > 0 && (
+        <p className="text-center text-gray-500 mt-8">
+          No more articles to load
+        </p>
       )}
     </div>
   );

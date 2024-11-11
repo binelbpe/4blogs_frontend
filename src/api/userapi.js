@@ -1,5 +1,6 @@
 import api from "./api";
 import axios from "axios";
+import { API_ENDPOINTS } from '../constants/api';
 
 export const register = async (userData) => {
   try {
@@ -29,7 +30,7 @@ export const register = async (userData) => {
 export const login = async (credentials) => {
   try {
     console.log("Login attempt with:", credentials);
-    const response = await api.post("/login", credentials);
+    const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
 
     if (response.data.success && response.data.data) {
       const { accessToken, refreshToken } = response.data.data;
@@ -114,14 +115,34 @@ export const createArticle = async (articleData) => {
   }
 };
 
-export const getArticles = async () => {
-  const response = await api.get("/articles");
-  return response.data;
+export const getArticles = async ({ page = 1, limit = 10, category, search }) => {
+  try {
+    let url = `/articles?page=${page}&limit=${limit}`;
+    
+    if (category && category !== 'all') {
+      url += `&category=${category}`;
+    }
+    
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    
+    const response = await api.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    throw error;
+  }
 };
 
-export const getUserArticles = async () => {
-  const response = await api.get("/articles/user");
-  return response.data;
+export const getUserArticles = async ({ page = 1, limit = 10 }) => {
+  try {
+    const response = await api.get(`/articles/user?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user articles:', error);
+    throw error;
+  }
 };
 
 export const getArticlesByUserAndId = async (userId) => {
@@ -130,8 +151,13 @@ export const getArticlesByUserAndId = async (userId) => {
 };
 
 export const getArticleById = async (id) => {
-  const response = await api.get(`/articles/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/articles/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    throw error;
+  }
 };
 
 export const getArticleByUserAndId = async (id) => {
@@ -174,30 +200,20 @@ export const getDeletedArticles = async () => {
 
 export const likeArticle = async (articleId) => {
   try {
-    const response = await axios.post(
-      `/api/articles/${articleId}/like`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      }
-    );
+    const response = await api.post(`/articles/${articleId}/like`);
     return response.data;
   } catch (error) {
+    console.error('Error liking article:', error);
     throw error;
   }
 };
 
 export const dislikeArticle = async (articleId) => {
   try {
-    const response = await axios.post(
-      `/api/articles/${articleId}/dislike`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      }
-    );
+    const response = await api.post(`/articles/${articleId}/dislike`);
     return response.data;
   } catch (error) {
+    console.error('Error disliking article:', error);
     throw error;
   }
 };
